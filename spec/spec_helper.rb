@@ -28,4 +28,7 @@ RSpec.configure do |config|
   ActiveRecord::Migration.create_table :posts do |t|
     t.string :author
   end
+
+  config.before(:each) { Post.delete_all }
+  config.after(:each) { Post.delete_all }
 end
