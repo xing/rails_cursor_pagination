@@ -1,5 +1,34 @@
 AllCops:
   TargetRubyVersion: 2.5
+  NewCops: enable
+
+Metrics/AbcSize:
+  Max: 25
+
+# DSLs inheritly uses long blocks, like describe and contexts in RSpec,
+# therefore disable this rule for specs and for the gemspec file
+Metrics/BlockLength:
+  Exclude:
+  - rails_cursor_pagination.gemspec
+  - spec/**/*
+
+Metrics/ClassLength:
+  Max: 200
+
+Metrics/CyclomaticComplexity:
+  Max: 15
+
+Metrics/MethodLength:
+  Max: 25
+
+Metrics/ParameterLists:
+  Max: 7
+
+Metrics/PerceivedComplexity:
+  Max: 13
 
 Layout/LineLength:
   Max: 80
+
+Naming/VariableNumber:
+  EnforcedStyle: snake_case

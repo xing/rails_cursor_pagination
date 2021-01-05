@@ -4,6 +4,9 @@ require 'bundler/setup'
 require 'rails_cursor_pagination'
 require 'active_record'
 
+# This dummy ActiveRecord class is used for testing
+class Post < ActiveRecord::Base; end
+
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = '.rspec_status'
@@ -15,7 +18,7 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
-  ActiveRecord::Base.logger = Logger.new(ENV['VERBOSE'] ? STDOUT : nil)
+  ActiveRecord::Base.logger = Logger.new(ENV['VERBOSE'] ? $stdout : nil)
   ActiveRecord::Migration.verbose = ENV['VERBOSE']
 
   # migrations
@@ -25,6 +28,4 @@ RSpec.configure do |config|
   ActiveRecord::Migration.create_table :posts do |t|
     t.string :author
   end
-
-  class Post < ActiveRecord::Base; end
 end

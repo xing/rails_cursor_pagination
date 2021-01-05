@@ -1,6 +1,15 @@
 # frozen_string_literal: true
 
 module RailsCursorPagination
+  # Use this Paginator class to effortlessly paginate through ActiveRecord
+  # relations using cursor pagination. For more details on how this works,
+  # read the top-level documentation of the `RailsCursorPagination` module.
+  #
+  # Usage:
+  #     RailsCursorPagination::Paginator
+  #       .new(relation)
+  #       .records
+  #
   class Paginator
     # @param [ActiveRecord::Relation] relation
     def initialize(relation)
