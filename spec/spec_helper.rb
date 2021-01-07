@@ -18,12 +18,17 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
+  # Set up database to use for tests
   ActiveRecord::Base.logger = Logger.new(ENV['VERBOSE'] ? $stdout : nil)
   ActiveRecord::Migration.verbose = ENV['VERBOSE']
 
-  # migrations
-  ActiveRecord::Base.establish_connection adapter: 'sqlite3',
-                                          database: ':memory:'
+  ActiveRecord::Base.establish_connection(
+    adapter: 'mysql2',
+    database: 'rails_cursor_pagination_testing'
+  )
+
+  # Ensure we have an empty `posts` table with the right format
+  ActiveRecord::Migration.drop_table :posts, if_exists: true
 
   ActiveRecord::Migration.create_table :posts do |t|
     t.string :author

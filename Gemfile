@@ -11,4 +11,4 @@ gem 'rspec', '~> 3.10'
 
 gem 'rubocop', '~> 1.6'
 
-gem 'sqlite3', '~> 1.4'
+gem 'mysql2', '~> 0.5'
