@@ -19,8 +19,6 @@ module RailsCursorPagination
     # cannot be properly parsed
     class InvalidCursorError < ParameterError; end
 
-    DEFAULT_PAGE_SIZE = 10
-
     # Create a new instance of the `RailsCursorPagination::Paginator`
     #
     # @param relation [ActiveRecord::Relation]
@@ -57,7 +55,7 @@ module RailsCursorPagination
       @page_size =
         first ||
         last ||
-        DEFAULT_PAGE_SIZE
+        RailsCursorPagination::Configuration.instance.default_page_size
 
       @memos = {}
     end

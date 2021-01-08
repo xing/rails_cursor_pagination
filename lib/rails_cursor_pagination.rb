@@ -146,5 +146,27 @@ module RailsCursorPagination
 
   require_relative 'rails_cursor_pagination/version'
 
+  require_relative 'rails_cursor_pagination/configuration'
+
   require_relative 'rails_cursor_pagination/paginator'
+
+  class << self
+    # Allows to configure this gem. Currently supported configuration values
+    # are:
+    #  * default_page_size - defines how many items are returned when not
+    #                        passing an explicit `first` or `last` parameter
+    #
+    # Usage:
+    #
+    #    RailsCursorPagination.configure do |config|
+    #      config.default_page_size = 42
+    #    end
+    #
+    # @yield [config] Yields a block to configure the gem as explained above
+    # @yieldparam config [RailsCursorPagination::Configuration]
+    #   Configuration instance that can be used to set up this gem
+    def configure(&_block)
+      yield(Configuration.instance)
+    end
+  end
 end

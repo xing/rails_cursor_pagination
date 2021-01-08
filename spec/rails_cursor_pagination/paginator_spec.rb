@@ -344,6 +344,33 @@ RSpec.describe RailsCursorPagination::Paginator do
         let(:expected_has_next_page) { true }
         let(:expected_has_previous_page) { false }
       end
+
+      context 'when a different default_page_size has been set' do
+        let(:custom_page_size) { 2 }
+
+        before do
+          RailsCursorPagination.configure do |config|
+            config.default_page_size = custom_page_size
+          end
+        end
+
+        after { RailsCursorPagination.configure(&:reset!) }
+
+        include_examples 'for a working query' do
+          let(:expected_posts_plain) { posts.first(custom_page_size) }
+          let(:expected_posts_desc) { posts.reverse.first(custom_page_size) }
+
+          let(:expected_posts_by_author) do
+            posts_by_author.first(custom_page_size)
+          end
+          let(:expected_posts_by_author_desc) do
+            posts_by_author.reverse.first(custom_page_size)
+          end
+
+          let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { false }
+        end
+      end
     end
 
     context 'when only passing first' do
