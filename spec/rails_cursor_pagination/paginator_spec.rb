@@ -137,12 +137,51 @@ RSpec.describe RailsCursorPagination::Paginator do
     let(:post_5) { Post.create! id: 5, author: 'Jane' }
     let(:post_6) { Post.create! id: 6, author: 'John' }
     let(:post_7) { Post.create! id: 7, author: 'Jane' }
+    let(:post_8) { Post.create! id: 8, author: 'John' }
+    let(:post_9) { Post.create! id: 9, author: 'Jess' }
+    let(:post_10) { Post.create! id: 10, author: 'Jess' }
+    let(:post_11) { Post.create! id: 11, author: 'John' }
+    let(:post_12) { Post.create! id: 12, author: 'John' }
+    let(:post_13) { Post.create! id: 13, author: 'Jane' }
 
     let!(:posts) do
-      [post_1, post_2, post_3, post_4, post_5, post_6, post_7]
+      [
+        post_1,
+        post_2,
+        post_3,
+        post_4,
+        post_5,
+        post_6,
+        post_7,
+        post_8,
+        post_9,
+        post_10,
+        post_11,
+        post_12,
+        post_13
+      ]
     end
     let(:posts_by_author) do
-      [post_2, post_3, post_5, post_7, post_1, post_4, post_6]
+      # Note that the ID is being used in a string sorting. Therefore, the order
+      # is '1' < '10' < '2' (instead of 1 < 2 < 10 as it would be for integers).
+      [
+        # All posts by "Jane"
+        post_13,
+        post_2,
+        post_3,
+        post_5,
+        post_7,
+        post_10,
+        # All posts by "Jess"
+        post_9,
+        post_1,
+        # All posts by "John"
+        post_11,
+        post_12,
+        post_4,
+        post_6,
+        post_8
+      ]
     end
 
     let(:cursor_object) { nil }
@@ -294,11 +333,13 @@ RSpec.describe RailsCursorPagination::Paginator do
 
     context 'when neither first/last nor before/after are passed' do
       include_examples 'for a working query' do
-        let(:expected_posts_plain) { posts.first(5) }
-        let(:expected_posts_desc) { posts.reverse.first(5) }
+        let(:expected_posts_plain) { posts.first(10) }
+        let(:expected_posts_desc) { posts.reverse.first(10) }
 
-        let(:expected_posts_by_author) { posts_by_author.first(5) }
-        let(:expected_posts_by_author_desc) { posts_by_author.reverse.first(5) }
+        let(:expected_posts_by_author) { posts_by_author.first(10) }
+        let(:expected_posts_by_author_desc) do
+          posts_by_author.reverse.first(10)
+        end
 
         let(:expected_has_next_page) { true }
         let(:expected_has_previous_page) { false }
@@ -340,16 +381,16 @@ RSpec.describe RailsCursorPagination::Paginator do
 
       include_examples 'for a working query' do
         let(:cursor_object_plain) { posts[0] }
-        let(:expected_posts_plain) { posts[1..5] }
+        let(:expected_posts_plain) { posts[1..10] }
 
         let(:cursor_object_desc) { posts[-1] }
-        let(:expected_posts_desc) { posts[-6..-2].reverse }
+        let(:expected_posts_desc) { posts[-11..-2].reverse }
 
         let(:cursor_object_by_author) { posts_by_author[0] }
-        let(:expected_posts_by_author) { posts_by_author[1..5] }
+        let(:expected_posts_by_author) { posts_by_author[1..10] }
 
         let(:cursor_object_by_author_desc) { posts_by_author[-1] }
-        let(:expected_posts_by_author_desc) { posts_by_author[-6..-2].reverse }
+        let(:expected_posts_by_author_desc) { posts_by_author[-11..-2].reverse }
 
         let(:expected_has_next_page) { true }
         let(:expected_has_previous_page) { true }
@@ -405,16 +446,16 @@ RSpec.describe RailsCursorPagination::Paginator do
 
       include_examples 'for a working query' do
         let(:cursor_object_plain) { posts[-1] }
-        let(:expected_posts_plain) { posts[-6..-2] }
+        let(:expected_posts_plain) { posts[-11..-2] }
 
         let(:cursor_object_desc) { posts[0] }
-        let(:expected_posts_desc) { posts[1..5].reverse }
+        let(:expected_posts_desc) { posts[1..10].reverse }
 
         let(:cursor_object_by_author) { posts_by_author[-1] }
-        let(:expected_posts_by_author) { posts_by_author[-6..-2] }
+        let(:expected_posts_by_author) { posts_by_author[-11..-2] }
 
         let(:cursor_object_by_author_desc) { posts_by_author[0] }
-        let(:expected_posts_by_author_desc) { posts_by_author[1..5].reverse }
+        let(:expected_posts_by_author_desc) { posts_by_author[1..10].reverse }
 
         let(:expected_has_next_page) { true }
         let(:expected_has_previous_page) { true }
