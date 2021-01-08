@@ -58,6 +58,8 @@ module RailsCursorPagination
         first ||
         last ||
         DEFAULT_PAGE_SIZE
+
+      @memos = {}
     end
 
     # Get the paginated result, including the actual `page` with its data items
@@ -152,7 +154,7 @@ module RailsCursorPagination
     #
     # @return [Integer]
     def total
-      @relation.count
+      memoize(:total) { @relation.count }
     end
 
     # Check if the pagination direction is forward
@@ -218,7 +220,9 @@ module RailsCursorPagination
     #
     # @return [ActiveRecord::Relation]
     def limited_relation_plus_one
-      filtered_and_sorted_relation.limit(@page_size + 1)
+      memoize :limited_relation_plus_one do
+        filtered_and_sorted_relation.limit(@page_size + 1)
+      end
     end
 
     # Cursor of the first record on the current page
@@ -336,7 +340,7 @@ module RailsCursorPagination
     #
     # @return [Integer, Array]
     def decoded_cursor
-      JSON.parse(Base64.strict_decode64(@cursor))
+      memoize(:decoded_cursor) { JSON.parse(Base64.strict_decode64(@cursor)) }
     rescue ArgumentError, JSON::ParserError
       raise InvalidCursorError,
             "The given cursor `#{@cursor.inspect}` could not be decoded"
@@ -384,19 +388,21 @@ module RailsCursorPagination
     #
     # @return [String]
     def sql_column
-      escaped_table_name = @relation.quoted_table_name
-      escaped_id_column = @relation.connection.quote_column_name(:id)
+      memoize :sql_column do
+        escaped_table_name = @relation.quoted_table_name
+        escaped_id_column = @relation.connection.quote_column_name(:id)
 
-      id_column = "#{escaped_table_name}.#{escaped_id_column}"
+        id_column = "#{escaped_table_name}.#{escaped_id_column}"
 
-      sql =
-        if custom_order_field?
-          "CONCAT(#{@order_field}, '-', #{id_column})"
-        else
-          id_column
-        end
+        sql =
+          if custom_order_field?
+            "CONCAT(#{@order_field}, '-', #{id_column})"
+          else
+            id_column
+          end
 
-      Arel.sql(sql)
+        Arel.sql(sql)
+      end
     end
 
     # The given relation with the right ordering applied. Takes custom order
@@ -412,9 +418,24 @@ module RailsCursorPagination
     #
     # @return [ActiveRecord::Relation]
     def filtered_and_sorted_relation
-      return sorted_relation if @cursor.blank?
+      memoize :filtered_and_sorted_relation do
+        next sorted_relation if @cursor.blank?
 
-      sorted_relation.where "#{sql_column} #{filter_operator} ?", filter_value
+        sorted_relation.where "#{sql_column} #{filter_operator} ?", filter_value
+      end
+    end
+
+    # Ensures that given block is only executed exactly once and on subsequent
+    # calls returns result from first execution. Useful for memoizing methods.
+    #
+    # @param key [Symbol]
+    #   Name or unique identifier of the method that is being memoized
+    # @yieldreturn [Object]
+    # @return [Object] Whatever the block returns
+    def memoize(key, &_block)
+      return @memos[key] if @memos.key?(key)
+
+      @memos[key] = yield
     end
   end
 end
