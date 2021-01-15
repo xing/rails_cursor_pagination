@@ -383,6 +383,18 @@ RSpec.describe RailsCursorPagination::Paginator do
           let(:expected_has_previous_page) { false }
         end
       end
+
+      context 'when `order` and `order_by` are explicitly set to `nil`' do
+        let(:params) { super().merge(order: nil, order_by: nil) }
+
+        it_behaves_like 'a well working query that also supports SELECT' do
+          let(:expected_posts) { posts.first(10) }
+          let(:expected_cursor) { ->(post) { post.id } }
+
+          let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { false }
+        end
+      end
     end
 
     context 'when only passing first' do

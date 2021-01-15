@@ -32,17 +32,20 @@ module RailsCursorPagination
     #   Number of records to return. Must be used together with `before`.
     # @param before [String, nil]
     #   Cursor to paginate upto (excluding). Can be combined with `last`.
-    # @param order_by [Symbol, String]
+    # @param order_by [Symbol, String, nil]
     #   Column to order by. If none is provided, will default to ID column.
     #   NOTE: this will cause an SQL `CONCAT` query. Therefore, you might want
     #   to add an index to your database: `CONCAT(<order_by_field>, '-', id)`
-    # @param order [Symbol]
+    # @param order [Symbol, nil]
     #   Ordering to apply, either `:asc` or `:desc`. Defaults to `:asc`.
     #
     # @raise [RailsCursorPagination::Paginator::ParameterError]
     #   If any parameter is not valid
     def initialize(relation, first: nil, after: nil, last: nil, before: nil,
-                   order_by: :id, order: :asc)
+                   order_by: nil, order: nil)
+      order_by ||= :id
+      order ||= :asc
+
       ensure_valid_params!(relation, first, after, last, before, order)
 
       @order_field = order_by
