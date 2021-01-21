@@ -194,14 +194,18 @@ RSpec.describe RailsCursorPagination::Paginator do
 
     shared_examples_for 'a properly returned response' do
       let(:expected_start_cursor) do
-        Base64.strict_encode64(
-          expected_cursor.call(expected_posts.first).to_json
-        )
+        if expected_posts.any?
+          Base64.strict_encode64(
+            expected_cursor.call(expected_posts.first).to_json
+          )
+        end
       end
       let(:expected_end_cursor) do
-        Base64.strict_encode64(
-          expected_cursor.call(expected_posts.last).to_json
-        )
+        if expected_posts.any?
+          Base64.strict_encode64(
+            expected_cursor.call(expected_posts.last).to_json
+          )
+        end
       end
 
       it 'has the correct format' do
@@ -268,16 +272,26 @@ RSpec.describe RailsCursorPagination::Paginator do
       end
     end
 
+    shared_examples_for 'a well working query that also supports SELECT' do
+      it_behaves_like 'a properly returned response'
+
+      context 'when SELECTing only some columns' do
+        let(:relation) { super().select(:id, :author) }
+
+        it_behaves_like 'a properly returned response'
+      end
+    end
+
     shared_examples_for 'a query that works with a descending `order`' do
       let(:params) { super().merge(order: :desc) }
 
-      it_behaves_like 'a properly returned response'
+      it_behaves_like 'a well working query that also supports SELECT'
     end
 
     shared_examples_for 'a query that works with `order_by` param' do
       let(:params) { super().merge(order_by: :author) }
 
-      it_behaves_like 'a properly returned response'
+      it_behaves_like 'a well working query that also supports SELECT'
 
       it_behaves_like 'a query that works with a descending `order`' do
         let(:cursor_object) { cursor_object_desc }
@@ -289,20 +303,18 @@ RSpec.describe RailsCursorPagination::Paginator do
     shared_examples_for 'a query that returns no data when relation is empty' do
       let(:relation) { Post.where(author: 'keks') }
 
-      it_behaves_like 'a properly returned response' do
+      it_behaves_like 'a well working query that also supports SELECT' do
         let(:expected_posts) { [] }
         let(:expected_has_next_page) { false }
         let(:expected_has_previous_page) { false }
         let(:expected_total) { 0 }
-        let(:expected_start_cursor) { nil }
-        let(:expected_end_cursor) { nil }
       end
     end
 
     shared_examples 'for a working query' do
       let(:expected_total) { relation.size }
 
-      it_behaves_like 'a properly returned response' do
+      it_behaves_like 'a well working query that also supports SELECT' do
         let(:cursor_object) { cursor_object_plain }
         let(:query_cursor_base) { cursor_object&.id }
 
