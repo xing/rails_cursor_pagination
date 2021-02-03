@@ -130,19 +130,19 @@ RSpec.describe RailsCursorPagination::Paginator do
   describe '#fetch' do
     subject(:result) { instance.fetch }
 
-    let(:post_1) { Post.create! id: 1, author: 'John' }
-    let(:post_2) { Post.create! id: 2, author: 'Jane' }
-    let(:post_3) { Post.create! id: 3, author: 'Jane' }
-    let(:post_4) { Post.create! id: 4, author: 'John' }
-    let(:post_5) { Post.create! id: 5, author: 'Jane' }
-    let(:post_6) { Post.create! id: 6, author: 'John' }
-    let(:post_7) { Post.create! id: 7, author: 'Jane' }
-    let(:post_8) { Post.create! id: 8, author: 'John' }
-    let(:post_9) { Post.create! id: 9, author: 'Jess' }
-    let(:post_10) { Post.create! id: 10, author: 'Jess' }
-    let(:post_11) { Post.create! id: 11, author: 'John' }
-    let(:post_12) { Post.create! id: 12, author: 'John' }
-    let(:post_13) { Post.create! id: 13, author: 'Jane' }
+    let(:post_1) { Post.create! id: 1, author: 'John', content: 'Post 1' }
+    let(:post_2) { Post.create! id: 2, author: 'Jane', content: 'Post 2' }
+    let(:post_3) { Post.create! id: 3, author: 'Jane', content: 'Post 3' }
+    let(:post_4) { Post.create! id: 4, author: 'John', content: 'Post 4' }
+    let(:post_5) { Post.create! id: 5, author: 'Jane', content: 'Post 5' }
+    let(:post_6) { Post.create! id: 6, author: 'John', content: 'Post 6' }
+    let(:post_7) { Post.create! id: 7, author: 'Jane', content: 'Post 7' }
+    let(:post_8) { Post.create! id: 8, author: 'John', content: 'Post 8' }
+    let(:post_9) { Post.create! id: 9, author: 'Jess', content: 'Post 9' }
+    let(:post_10) { Post.create! id: 10, author: 'Jess', content: 'Post 10' }
+    let(:post_11) { Post.create! id: 11, author: 'John', content: 'Post 11' }
+    let(:post_12) { Post.create! id: 12, author: 'John', content: 'Post 12' }
+    let(:post_13) { Post.create! id: 13, author: 'Jane', content: 'Post 13' }
 
     let!(:posts) do
       [
@@ -191,6 +191,7 @@ RSpec.describe RailsCursorPagination::Paginator do
     let(:cursor_object_by_author_desc) { nil }
     let(:query_cursor_base) { cursor_object&.id }
     let(:query_cursor) { Base64.strict_encode64(query_cursor_base.to_json) }
+    let(:order_by_column) { nil }
 
     shared_examples_for 'a properly returned response' do
       let(:expected_start_cursor) do
@@ -207,6 +208,7 @@ RSpec.describe RailsCursorPagination::Paginator do
           )
         end
       end
+      let(:expected_attributes) { %i[id author content] }
 
       it 'has the correct format' do
         is_expected.to be_a Hash
@@ -249,6 +251,8 @@ RSpec.describe RailsCursorPagination::Paginator do
           expect(subject.pluck(:data)).to all be_a Post
           expect(subject.pluck(:data)).to match_array expected_posts
           expect(subject.pluck(:data)).to eq expected_posts
+          expect(subject.pluck(:data).map(&:attributes).map(&:keys))
+            .to all match_array expected_attributes.map(&:to_s)
 
           expect(subject.pluck(:cursor)).to all be_a String
           expect(subject.pluck(:cursor)).to all be_present
@@ -276,9 +280,24 @@ RSpec.describe RailsCursorPagination::Paginator do
       it_behaves_like 'a properly returned response'
 
       context 'when SELECTing only some columns' do
-        let(:relation) { super().select(:id, :author) }
+        let(:selected_attributes) { %i[id author] }
+        let(:relation) { super().select(*selected_attributes) }
 
-        it_behaves_like 'a properly returned response'
+        it_behaves_like 'a properly returned response' do
+          let(:expected_attributes) { %i[id author] }
+        end
+
+        context 'and not including any cursor-relevant column' do
+          let(:selected_attributes) { %i[content] }
+
+          it_behaves_like 'a properly returned response' do
+            let(:expected_attributes) do
+              %i[id content].tap do |attributes|
+                attributes << order_by_column if order_by_column.present?
+              end
+            end
+          end
+        end
       end
     end
 
@@ -289,7 +308,8 @@ RSpec.describe RailsCursorPagination::Paginator do
     end
 
     shared_examples_for 'a query that works with `order_by` param' do
-      let(:params) { super().merge(order_by: :author) }
+      let(:params) { super().merge(order_by: order_by_column) }
+      let(:order_by_column) { :author }
 
       it_behaves_like 'a well working query that also supports SELECT'
 

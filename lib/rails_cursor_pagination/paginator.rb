@@ -406,12 +406,34 @@ module RailsCursorPagination
       end
     end
 
+    # Ensure that the relation has the ID column and any potential `order_by`
+    # column selected. These are required to generate the record's cursor and
+    # therefore it's crucial that they are part of the selected fields.
+    #
+    # @return [ActiveRecord::Relation]
+    def relation_with_cursor_fields
+      return @relation if @relation.select_values.blank?
+
+      relation = @relation
+
+      unless @relation.select_values.include?(:id)
+        relation = relation.select(:id)
+      end
+
+      if custom_order_field? && !@relation.select_values.include?(@order_field)
+        relation = relation.select(@order_field)
+      end
+
+      relation
+    end
+
     # The given relation with the right ordering applied. Takes custom order
     # columns as well as custom direction and pagination into account.
     #
     # @return [ActiveRecord::Relation]
     def sorted_relation
-      @relation.reorder(sql_column => pagination_sorting.upcase)
+      relation_with_cursor_fields
+        .reorder(sql_column => pagination_sorting.upcase)
     end
 
     # Applies the filtering based on the provided cursor and order column to the

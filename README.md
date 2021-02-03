@@ -66,6 +66,7 @@ This will return a data structure similar to the following:
 
 Note that any ordering of the relation at this stage will be ignored by the gem.
 Take a look at the next section _"Ordering"_ to see how you can have an order different than ascending IDs.
+Read the _"The passed relation"_ to learn more about the relation that can be passed to the paginator.
 
 As you saw in the request, `with_total` is an option.
 If omitted, or set to `false`, the resulting hash will lack the `:total` key, but this will also cause one DB query less.
@@ -176,6 +177,46 @@ end
 ```
 
 This would set the default page size to 50.
+                       
+### The passed relation
+
+The relation passed to the `RailsCursorPagination::Paginator` needs to be an instance of an `ActiveRecord::Relation`.
+So if you e.g. have a `Post` model that inherits from `ActiveRecord::Base`, you can initialize your paginator like this:
+
+```ruby
+RailsCursorPagination::Paginator
+  .new(Post.all)
+```
+
+This would then paginate over all post records in your database.
+              
+#### Limiting the paginated records
+
+As shown above, you can also apply `.where` clauses to filter your records before pagination:
+
+```ruby
+RailsCursorPagination::Paginator
+  .new(Post.where(author: 'Jane'))
+```
+
+This would only paginate over Jane's records.
+         
+#### Limiting the queried fields 
+
+You can also use `.select` to limit the fields that are requested from the database.
+If, for example, your post contains a very big `content` field that you don't want to return on the paginated index endpoint, you can select to only get the fields relevant to you:
+
+```ruby
+RailsCursorPagination::Paginator
+  .new(Post.select(:id, :author))
+```
+
+One important thing to note is that the ID of the record _will always be returned_, whether you selected it or not.
+This is due to how the cursor is generated.
+It requires the record's ID to always be present.
+Therefore, even if it is not selected by you, it will be added to the query.
+
+The same goes for any field that is specified via `order_by:`, this field is also required for building the cursor and will therefore automatically be requested from the database.
 
 ## How does it work?
 
