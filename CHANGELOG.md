@@ -14,6 +14,8 @@ These are the latest changes on the project's `master` branch that have not yet 
   Follow the same format as previous releases by categorizing your feature into "Added", "Changed", "Deprecated", "Removed", "Fixed", or "Security".
 --->
 
+## [0.1.2] - 2021-02-04
+
 ### Fixed
 - Pagination for relations in which a custom `SELECT` does not contain cursor-relevant fields like `:id` or the field specified via `order_by`
 

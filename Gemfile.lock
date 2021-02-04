@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rails_cursor_pagination (0.1.1)
+    rails_cursor_pagination (0.1.2)
       activerecord (>= 5.0)
 
 GEM
