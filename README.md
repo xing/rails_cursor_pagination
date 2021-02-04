@@ -368,6 +368,9 @@ To release a new version, update the version number in `version.rb`, and then ru
 Bug reports and pull requests are welcome on GitHub at https://source.xing.com/communities-team/rails_cursor_pagination.
 This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://source.xing.com/communities-team/rails_cursor_pagination/blob/master/CODE_OF_CONDUCT.md).
 
+If you open a pull request, please make sure to also document your changes in the `CHANGELOG.md`.
+This way, your change can be properly announced in the next release.
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
