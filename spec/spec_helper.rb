@@ -24,7 +24,9 @@ RSpec.configure do |config|
 
   ActiveRecord::Base.establish_connection(
     adapter: 'mysql2',
-    database: 'rails_cursor_pagination_testing'
+    database: 'rails_cursor_pagination_testing',
+    host: ENV['DB_HOST'],
+    user: ENV['DB_USER']
   )
 
   # Ensure we have an empty `posts` table with the right format
