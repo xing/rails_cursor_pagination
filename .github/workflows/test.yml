@@ -19,7 +19,7 @@ jobs:
       - name: Run Rubocop
         run: bundle exec rake rubocop
 
-  test:
+  test-on-mysql:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
@@ -41,5 +41,32 @@ jobs:
       - name: Run tests
         run: bundle exec rake spec
         env:
+          DB_ADAPTER: mysql2
           DB_HOST: 127.0.0.1
           DB_USER: root
+
+  test-on-postgres:
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        ruby-version: ['2.6', '2.7', '3.0']
+        postgres-version: [13, 12, 11, 10, 9.6]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ankane/setup-postgres@v1
+        with:
+          postgres-version: ${{ matrix.postgres-version }}
+      - name: Create the test database
+        run: createdb rails_cursor_pagination_testing
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+      - name: Run tests
+        run: bundle exec rake spec
+        env:
+          DB_ADAPTER: postgresql
+          DB_HOST: ''
+          DB_USER: ${{ env.USER }}

@@ -23,7 +23,7 @@ RSpec.configure do |config|
   ActiveRecord::Migration.verbose = ENV['VERBOSE']
 
   ActiveRecord::Base.establish_connection(
-    adapter: 'mysql2',
+    adapter: ENV['DB_ADAPTER'] || 'mysql2',
     database: 'rails_cursor_pagination_testing',
     host: ENV['DB_HOST'],
     user: ENV['DB_USER']

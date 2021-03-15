@@ -12,3 +12,5 @@ gem 'rspec', '~> 3.10'
 gem 'rubocop', '~> 1.6'
 
 gem 'mysql2', '~> 0.5'
+
+gem 'pg', '~> 1.2'
