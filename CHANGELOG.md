@@ -14,6 +14,8 @@ These are the latest changes on the project's `master` branch that have not yet 
   Follow the same format as previous releases by categorizing your feature into "Added", "Changed", "Deprecated", "Removed", "Fixed", or "Security".
 --->
 
+## [0.1.3] - 2021-03-17
+
 ### Changed
 - Make the gem publicly available via github.com/xing/rails_cursor_pagination and release it to Rubygems.org
 - Reference changelog file in the gemspec instead of the general releases Github tab
