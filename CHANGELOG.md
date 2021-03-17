@@ -15,7 +15,8 @@ These are the latest changes on the project's `master` branch that have not yet 
 --->
 
 ### Changed
-- Make the gem publicly available via github.com/xing/rails_cursor_pagination and release it to Rubygems.org 
+- Make the gem publicly available via github.com/xing/rails_cursor_pagination and release it to Rubygems.org
+- Reference changelog file in the gemspec instead of the general releases Github tab
 
 ## [0.1.2] - 2021-02-04
 
