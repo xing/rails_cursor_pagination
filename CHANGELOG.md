@@ -18,6 +18,9 @@ These are the latest changes on the project's `master` branch that have not yet 
 - Make the gem publicly available via github.com/xing/rails_cursor_pagination and release it to Rubygems.org
 - Reference changelog file in the gemspec instead of the general releases Github tab
 
+### Removed
+- Remove bulk from release: The previous gem releases contained files like the content of the `bin` folder or the Gemfile used for testing. Since this is not useful for gem users, adjust the gemspec file accordingly. 
+
 ## [0.1.2] - 2021-02-04
 
 ### Fixed
