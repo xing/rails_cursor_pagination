@@ -26,7 +26,7 @@ RSpec.configure do |config|
     adapter: ENV['DB_ADAPTER'] || 'mysql2',
     database: 'rails_cursor_pagination_testing',
     host: ENV['DB_HOST'],
-    user: ENV['DB_USER']
+    username: ENV['DB_USER']
   )
 
   # Ensure we have an empty `posts` table with the right format
