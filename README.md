@@ -1,5 +1,9 @@
 # RailsCursorPagination
 
+[![Gem Version](https://badge.fury.io/rb/rails_cursor_pagination.svg)](https://badge.fury.io/rb/rails_cursor_pagination)
+[![License](http://img.shields.io/badge/license-MIT-brightgreen.svg)](https://tldrlegal.com/license/mit-license)
+[![Tests](https://github.com/xing/rails_cursor_pagination/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/xing/rails_cursor_pagination/actions/workflows/test.yml?query=branch%3Amaster)
+
 This library allows to paginate through an `ActiveRecord` relation using cursor pagination.
 It also supports ordering by any column on the relation in either ascending or descending order.
 
