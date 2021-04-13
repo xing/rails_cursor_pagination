@@ -159,7 +159,7 @@ module RailsCursorPagination
     #
     # @return [Integer]
     def total
-      memoize(:total) { @relation.size }
+      memoize(:total) { @relation.reorder('').size }
     end
 
     # Check if the pagination direction is forward
@@ -186,11 +186,12 @@ module RailsCursorPagination
         # When paginating forward, we can only have a previous page if we were
         # provided with a cursor and there were records discarded after applying
         # this filter. These records would have to be on previous pages.
-        @cursor.present? && filtered_and_sorted_relation.size < total
+        @cursor.present? &&
+          filtered_and_sorted_relation.reorder('').size < total
       else
         # When paginating backwards, if we managed to load one more record than
         # requested, this record will be available on the previous page.
-        @page_size < limited_relation_plus_one.size
+        @page_size < limited_relation_plus_one.reorder('').size
       end
     end
 
@@ -201,12 +202,12 @@ module RailsCursorPagination
       if paginate_forward?
         # When paginating forward, if we managed to load one more record than
         # requested, this record will be available on the next page.
-        @page_size < limited_relation_plus_one.size
+        @page_size < limited_relation_plus_one.reorder('').size
       else
         # When paginating backward, if applying our cursor reduced the number
         # records returned, we know that the missing records will be on
         # subsequent pages.
-        filtered_and_sorted_relation.size < total
+        filtered_and_sorted_relation.reorder('').size < total
       end
     end
 
