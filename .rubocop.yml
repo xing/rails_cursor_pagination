@@ -32,3 +32,9 @@ Layout/LineLength:
 
 Naming/VariableNumber:
   EnforcedStyle: snake_case
+
+# In Ruby 3.0 interpolated strings will no longer be frozen automatically, so
+# to ensure consistent performance, we have to manually call `String#freeze` in
+# some places.
+Style/RedundantFreeze:
+  Enabled: false
