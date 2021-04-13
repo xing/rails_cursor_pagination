@@ -96,11 +96,11 @@
 #
 #     SELECT *
 #     FROM "posts"
-#     ORDER BY CONCAT(author, '-', "posts"."id") ASC
+#     ORDER BY "posts"."author" ASC, "posts"."id" ASC
 #     LIMIT 2
 #
-# As you can see, this will now order by a concatenation of the requested
-# column, a dash `-`, and the ID column. Ordering only the author is not
+# As you can see, this will now order by the author first, and if two records
+# have the same author it will order them by ID. Ordering only the author is not
 # enough since we cannot know if the custom column only has unique values.
 # And we need to guarantee the correct order of ambiguous records independent
 # of the direction of ordering. This unique order is the basis of being able
@@ -128,18 +128,22 @@
 #
 #     SELECT *
 #     FROM "posts"
-#     WHERE CONCAT(author, '-', "posts"."id") > 'Jane-4'
-#     ORDER BY CONCAT(author, '-', "posts"."id") ASC
+#     WHERE (author > 'Jane' OR (author = 'Jane') AND ("posts"."id" > 4))
+#     ORDER BY "posts"."author" ASC, "posts"."id" ASC
 #     LIMIT 2
 #
-# You can see how the cursor is being translated into the WHERE clause to
-# uniquely identify the row and properly filter based on this. We will get
-# the records #5 and #2 as response.
+# You can see how the cursor is being used by the WHERE clause to uniquely
+# identify the row and properly filter based on this. We only want to get
+# records that either have a name that is alphabetically after `"Jane"` or
+# another `"Jane"` record with an ID that is higher than `4`. We will get the
+# records #5 and #2 as response.
 #
-# As you can see, when using a custom `order_by`, the concatenation is used
-# for both filtering and ordering. Therefore, it is recommended to add an
-# index for columns that are frequently used for ordering. In our test case
-# we would want to add an index for `CONCAT(author, '-', id)`.
+# When using a custom `order_by`, this affects both filtering as well as
+# ordering. Therefore, it is recommended to add an index for columns that are
+# frequently used for ordering. In our test case we would want to add a compound
+# index for the `(author, id)` column combination. Databases like MySQL and
+# Postgres are able to then use the leftmost part of the index, in our case
+# `author`, by its own _or_ can use it combined with the `id` index.
 #
 module RailsCursorPagination
   class Error < StandardError; end

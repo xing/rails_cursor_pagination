@@ -34,8 +34,12 @@ module RailsCursorPagination
     #   Cursor to paginate upto (excluding). Can be combined with `last`.
     # @param order_by [Symbol, String, nil]
     #   Column to order by. If none is provided, will default to ID column.
-    #   NOTE: this will cause an SQL `CONCAT` query. Therefore, you might want
-    #   to add an index to your database: `CONCAT(<order_by_field>, '-', id)`
+    #   NOTE: this will cause the query to filter on both the given column as
+    #   well as the ID column. So you might want to add a compound index to your
+    #   database similar to:
+    #   ```sql
+    #     CREATE INDEX <index_name> ON <table_name> (<order_by_field>, id)
+    #   ```
     # @param order [Symbol, nil]
     #   Ordering to apply, either `:asc` or `:desc`. Defaults to `:asc`.
     #
@@ -374,38 +378,6 @@ module RailsCursorPagination
       decoded_cursor.first
     end
 
-    # The SQL identifier of the column we need to consider for both ordering and
-    # filtering.
-    #
-    # In case we have a custom field order, this is a concatenation
-    # of the custom order field and the ID column joined by a dash. This is to
-    # ensure uniqueness of records even if they might have duplicates in the
-    # custom order field. If we don't have a custom order, it just returns a
-    # reference to the table's ID column.
-    #
-    # This uses the fully qualified and escaped reference to the ID column to
-    # prevent ambiguity in case of a query that uses JOINs and therefore might
-    # have multiple ID columns.
-    #
-    # @return [String]
-    def sql_column
-      memoize :sql_column do
-        escaped_table_name = @relation.quoted_table_name
-        escaped_id_column = @relation.connection.quote_column_name(:id)
-
-        id_column = "#{escaped_table_name}.#{escaped_id_column}"
-
-        sql =
-          if custom_order_field?
-            "CONCAT(#{@order_field}, '-', #{id_column})"
-          else
-            id_column
-          end
-
-        Arel.sql(sql)
-      end
-    end
-
     # Ensure that the relation has the ID column and any potential `order_by`
     # column selected. These are required to generate the record's cursor and
     # therefore it's crucial that they are part of the selected fields.
@@ -432,19 +404,60 @@ module RailsCursorPagination
     #
     # @return [ActiveRecord::Relation]
     def sorted_relation
+      unless custom_order_field?
+        return relation_with_cursor_fields.reorder id: pagination_sorting.upcase
+      end
+
       relation_with_cursor_fields
-        .reorder(sql_column => pagination_sorting.upcase)
+        .reorder(@order_field => pagination_sorting.upcase,
+                 id: pagination_sorting.upcase)
+    end
+
+    # Return a properly escaped reference to the ID column prefixed with the
+    # table name. This prefixing is important in case of another model having
+    # been joined to the passed relation.
+    #
+    # @return [String (frozen)]
+    def id_column
+      escaped_table_name = @relation.quoted_table_name
+      escaped_id_column = @relation.connection.quote_column_name(:id)
+
+      "#{escaped_table_name}.#{escaped_id_column}".freeze
     end
 
     # Applies the filtering based on the provided cursor and order column to the
     # sorted relation.
+    #
+    # In case a custom `order_by` field is provided, we have to filter based on
+    # this field and the ID column to ensure reproducible results.
+    #
+    # To better understand this, let's consider our example with the `posts`
+    # table. Say that we're paginating forward and add `order_by: :author` to
+    # the call, and if the cursor that is passed encodes `['Jane', 4]`. In this
+    # case we will have to select all posts that either have an author whose
+    # name is alphanumerically greater than 'Jane', or if the author is 'Jane'
+    # we have to ensure that the post's ID is greater than `4`.
+    #
+    # So our SQL WHERE clause needs to be something like:
+    #    WHERE author > 'Jane' OR author = 'Jane' AND id > 4
     #
     # @return [ActiveRecord::Relation]
     def filtered_and_sorted_relation
       memoize :filtered_and_sorted_relation do
         next sorted_relation if @cursor.blank?
 
-        sorted_relation.where "#{sql_column} #{filter_operator} ?", filter_value
+        unless custom_order_field?
+          next sorted_relation.where "#{id_column} #{filter_operator} ?",
+                                     decoded_cursor_id
+        end
+
+        sorted_relation
+          .where("#{@order_field} #{filter_operator} ?", decoded_cursor_field)
+          .or(
+            sorted_relation
+              .where("#{@order_field} = ?", decoded_cursor_field)
+              .where("#{id_column} #{filter_operator} ?", decoded_cursor_id)
+          )
       end
     end
 

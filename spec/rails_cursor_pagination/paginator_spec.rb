@@ -162,25 +162,25 @@ RSpec.describe RailsCursorPagination::Paginator do
       ]
     end
     let(:posts_by_author) do
-      # Note that the ID is being used in a string sorting. Therefore, the order
-      # is '1' < '10' < '2' (instead of 1 < 2 < 10 as it would be for integers).
+      # Posts are first ordered by the author's name and then, in case of two
+      # posts having the same author, by ID
       [
         # All posts by "Jane"
-        post_13,
         post_2,
         post_3,
         post_5,
         post_7,
-        post_10,
+        post_13,
         # All posts by "Jess"
         post_9,
-        post_1,
+        post_10,
         # All posts by "John"
-        post_11,
-        post_12,
+        post_1,
         post_4,
         post_6,
-        post_8
+        post_8,
+        post_11,
+        post_12
       ]
     end
 
