@@ -191,7 +191,7 @@ module RailsCursorPagination
       else
         # When paginating backwards, if we managed to load one more record than
         # requested, this record will be available on the previous page.
-        @page_size < limited_relation_plus_one.reorder('').size
+        records_plus_one.size > @page_size
       end
     end
 
@@ -202,7 +202,7 @@ module RailsCursorPagination
       if paginate_forward?
         # When paginating forward, if we managed to load one more record than
         # requested, this record will be available on the next page.
-        @page_size < limited_relation_plus_one.reorder('').size
+        records_plus_one.size > @page_size
       else
         # When paginating backward, if applying our cursor reduced the number
         # records returned, we know that the missing records will be on
@@ -215,7 +215,7 @@ module RailsCursorPagination
     #
     # @return [Array<ActiveRecord>]
     def records
-      records = limited_relation_plus_one.first(@page_size)
+      records = records_plus_one.first(@page_size)
 
       paginate_forward? ? records : records.reverse
     end
@@ -223,11 +223,13 @@ module RailsCursorPagination
     # Apply limit to filtered and sorted relation that contains one item more
     # than the user-requested page size. This is useful for determining if there
     # is an additional page available without having to do a separate DB query.
+    # Then, fetch the records from the database to prevent multiple queries to
+    # load the records and count them.
     #
     # @return [ActiveRecord::Relation]
-    def limited_relation_plus_one
-      memoize :limited_relation_plus_one do
-        filtered_and_sorted_relation.limit(@page_size + 1)
+    def records_plus_one
+      memoize :records_plus_one do
+        filtered_and_sorted_relation.limit(@page_size + 1).load
       end
     end
 
