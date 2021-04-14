@@ -20,6 +20,7 @@ These are the latest changes on the project's `master` branch that have not yet 
          
 ### Fixed
 - Only trigger one SQL query to load the records from the database and use it to determine if there was a previous / is a next page
+- Memoize the `Paginator#page` method which is invoked multiple times to prevent it from mapping over the `records` again and again and rebuilding all cursors
 
 ### Added
 - Description about `order_by` on arbitrary SQL to README.md

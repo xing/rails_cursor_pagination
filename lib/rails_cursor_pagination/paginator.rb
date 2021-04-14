@@ -147,11 +147,13 @@ module RailsCursorPagination
     #
     # @return [Array<Hash>] List of hashes, each with a `cursor` and `data`
     def page
-      records.map do |item|
-        {
-          cursor: cursor_for_record(item),
-          data: item
-        }
+      memoize :page do
+        records.map do |item|
+          {
+            cursor: cursor_for_record(item),
+            data: item
+          }
+        end
       end
     end
 
