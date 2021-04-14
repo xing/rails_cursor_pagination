@@ -21,6 +21,9 @@ These are the latest changes on the project's `master` branch that have not yet 
 ### Fixed
 - Only trigger one SQL query to load the records from the database and use it to determine if there was a previous / is a next page
 
+### Added
+- Description about `order_by` on arbitrary SQL to README.md
+
 ## [0.1.3] - 2021-03-17
 
 ### Changed
@@ -28,7 +31,7 @@ These are the latest changes on the project's `master` branch that have not yet 
 - Reference changelog file in the gemspec instead of the general releases Github tab
 
 ### Removed
-- Remove bulk from release: The previous gem releases contained files like the content of the `bin` folder or the Gemfile used for testing. Since this is not useful for gem users, adjust the gemspec file accordingly. 
+- Remove bulk from release: The previous gem releases contained files like the content of the `bin` folder or the Gemfile used for testing. Since this is not useful for gem users, adjust the gemspec file accordingly.
 
 ## [0.1.2] - 2021-02-04
 

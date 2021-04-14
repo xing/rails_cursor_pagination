@@ -178,6 +178,29 @@ end
 ```
 
 Please take a look at the _"How does it work?"_ to find out more why this is necessary.
+          
+#### Order by more complex logic
+
+Sometimes you might not only want to oder by a column ascending or descending, but need more complex logic.
+Imagine you would also store the post's `category` on the `posts` table (as a plain string for simplicity's sake).
+And the category could be `pinned`, `announcement`, or `general`.
+Then you might want to show all `pinned` posts first, followed by the `announcement` ones and lastly show the `general` posts.
+
+In MySQL you could e.g. use a `FIELD(category, 'pinned', 'announcement', 'general')` query in the `ORDER BY` clause to achieve this.
+However, you cannot add an index to such a statement.
+And therefore, the performance of this is – especially when using cursor pagination where we not only have an `ORDER BY` clause but also need it twice in the `WHERE` clauses – is pretty dismal.
+
+For this reason, the gem currently only supports ordering by natural columns of the relation.
+You **cannot** pass a generic SQL query to the `order_by` parameter.
+
+Implementing support for arbitrary SQL queries would also be fairly complex to handle in this gem.
+We would have to ensure that SQL injection attacks aren't possible by passing malicious code to the `oder_by` parameter.
+And we would need to return the data produced by the statement so that it can be encoded in the cursor.
+This is, for now, out of scope of the functionality of this gem.
+
+What is recommended if you _do_ need to order by more complex logic is to have a separate column that you only use for ordering.
+You can use `ActiveRecord` hooks to automatically update this column whenever you change your data.
+Or, for example in MySQL, you can also use a [generated column](https://dev.mysql.com/doc/refman/5.7/en/create-table-generated-columns.html) that is automatically being updated by the database based on some stored logic. 
 
 ### Configuration options
 
