@@ -14,6 +14,8 @@ These are the latest changes on the project's `master` branch that have not yet 
   Follow the same format as previous releases by categorizing your feature into "Added", "Changed", "Deprecated", "Removed", "Fixed", or "Security".
 --->
 
+## [0.2.0] - 2021-04-19
+
 ### Changed
 - **Breaking change:** The way records are retrieved from a given cursor has been changed to no longer use `CONCAT` but instead simply use a compound `WHERE` clause in case of a custom order and having both the custom field as well as the `id` field in the `ORDER BY` query. This is a breaking change since it now changes the internal order of how records with the same value of the `order_by` field are returned.
 - Remove `ORDER BY` clause from `COUNT` queries
