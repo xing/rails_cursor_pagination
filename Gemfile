@@ -9,7 +9,7 @@ gem 'rake', '~> 13.0'
 
 gem 'rspec', '~> 3.10'
 
-gem 'rubocop', '~> 1.16'
+gem 'rubocop', '~> 1.17'
 
 gem 'mysql2', '~> 0.5'
 
