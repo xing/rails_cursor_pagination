@@ -124,6 +124,13 @@ RSpec.describe RailsCursorPagination::Paginator do
         include_examples 'for a ParameterError with the right message',
                          '`last` cannot be negative, but was `-4`'
       end
+
+      context 'passing an invalid `decorator`' do
+        let(:params) { super().merge(decorator: "no") }
+
+        include_examples 'for a ParameterError with the right message',
+                         '`decorator` must respond to .call'
+      end
     end
   end
 
@@ -272,6 +279,14 @@ RSpec.describe RailsCursorPagination::Paginator do
         it 'also includes the `total` of records' do
           is_expected.to have_key :total
           expect(subject[:total]).to eq expected_total
+        end
+      end
+
+      context 'when passing a valid lambda as `&decorator`' do
+        let(:params) { { decorator: :class.to_proc } }
+
+        it 'returns decorated records' do
+          expect(subject[:page].pluck(:data)).to all be Post
         end
       end
     end
