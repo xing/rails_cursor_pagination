@@ -289,6 +289,15 @@ RSpec.describe RailsCursorPagination::Paginator do
           expect(subject[:page].pluck(:data)).to all be Post
         end
       end
+
+      context 'when passing a valid lambda as `&record_decorator`' do
+        let(:id_incrementer) { ->(item) { { next_id: item.id + 1 } } }
+        let(:params) { super().merge(record_decorator: id_incrementer) }
+
+        it 'returns decorated records' do
+          expect(subject[:page].pluck(:data)).to eq expected_posts.map { |post| id_incrementer.call(post) }
+        end
+      end
     end
 
     shared_examples_for 'a well working query that also supports SELECT' do
