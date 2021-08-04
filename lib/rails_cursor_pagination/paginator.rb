@@ -50,7 +50,8 @@ module RailsCursorPagination
       order_by ||= :id
       order ||= :asc
 
-      ensure_valid_params!(relation, first, after, last, before, order, record_decorator)
+      ensure_valid_params!(relation, first, after, last, before, order,
+                           record_decorator)
 
       @order_field = order_by
       @order_direction = order

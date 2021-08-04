@@ -126,7 +126,7 @@ RSpec.describe RailsCursorPagination::Paginator do
       end
 
       context 'passing an invalid `record_decorator`' do
-        let(:params) { super().merge(record_decorator: "no") }
+        let(:params) { super().merge(record_decorator: 'no') }
 
         include_examples 'for a ParameterError with the right message',
                          '`record_decorator` must respond to .call'
@@ -295,7 +295,9 @@ RSpec.describe RailsCursorPagination::Paginator do
         let(:params) { super().merge(record_decorator: id_incrementer) }
 
         it 'returns decorated records' do
-          expect(subject[:page].pluck(:data)).to eq expected_posts.map { |post| id_incrementer.call(post) }
+          expect(subject[:page].pluck(:data)).to eq expected_posts.map { |post|
+                                                      id_incrementer.call(post)
+                                                    }
         end
       end
     end
