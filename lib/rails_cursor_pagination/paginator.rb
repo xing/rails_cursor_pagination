@@ -42,6 +42,9 @@ module RailsCursorPagination
     #   ```
     # @param order [Symbol, nil]
     #   Ordering to apply, either `:asc` or `:desc`. Defaults to `:asc`.
+    # @param record_decorator [Object, proc { |obj| obj.itself }]
+    #   Object to which each paginated record will be passed to. Default behavior
+    #   simply returns the record itself. Object must be callable.
     #
     # @raise [RailsCursorPagination::Paginator::ParameterError]
     #   If any parameter is not valid
@@ -102,6 +105,8 @@ module RailsCursorPagination
     #   Optional, cannot be combined with `after`
     # @param order [Symbol]
     #   Optional, must be :asc or :desc
+    # @param record_decorator [Object, proc { |obj| obj.itself }]
+    #   Optional, must respond to `.call`
     #
     # @raise [RailsCursorPagination::Paginator::ParameterError]
     #   If any parameter is not valid
@@ -149,7 +154,8 @@ module RailsCursorPagination
       }
     end
 
-    # Get the records for the given page along with their cursors
+    # Get the records for the given page along with their cursors.
+    # Returned data will have been passed to record_decorator.
     #
     # @return [Array<Hash>] List of hashes, each with a `cursor` and `data`
     def page
