@@ -46,11 +46,11 @@ module RailsCursorPagination
     # @raise [RailsCursorPagination::Paginator::ParameterError]
     #   If any parameter is not valid
     def initialize(relation, first: nil, after: nil, last: nil, before: nil,
-                   order_by: nil, order: nil, decorator: :itself.to_proc)
+                   order_by: nil, order: nil, record_decorator: :itself.to_proc)
       order_by ||= :id
       order ||= :asc
 
-      ensure_valid_params!(relation, first, after, last, before, order, decorator)
+      ensure_valid_params!(relation, first, after, last, before, order, record_decorator)
 
       @order_field = order_by
       @order_direction = order
@@ -64,7 +64,7 @@ module RailsCursorPagination
         last ||
         RailsCursorPagination::Configuration.instance.default_page_size
 
-      @decorator = decorator
+      @record_decorator = record_decorator
 
       @memos = {}
     end
@@ -104,7 +104,7 @@ module RailsCursorPagination
     #
     # @raise [RailsCursorPagination::Paginator::ParameterError]
     #   If any parameter is not valid
-    def ensure_valid_params!(relation, first, after, last, before, order, decorator)
+    def ensure_valid_params!(relation, first, after, last, before, order, record_decorator)
       unless relation.is_a?(ActiveRecord::Relation)
         raise ParameterError,
               'The first argument must be an ActiveRecord::Relation, but was '\
@@ -129,8 +129,8 @@ module RailsCursorPagination
       if last.present? && last.negative?
         raise ParameterError, "`last` cannot be negative, but was `#{last}`"
       end
-      unless decorator.respond_to?(:call)
-        raise ParameterError, '`decorator` must respond to .call'
+      unless record_decorator.respond_to?(:call)
+        raise ParameterError, '`record_decorator` must respond to .call'
       end
 
       true
@@ -156,7 +156,7 @@ module RailsCursorPagination
         records.map do |item|
           {
             cursor: cursor_for_record(item),
-            data: @decorator.call(item)
+            data: @record_decorator.call(item)
           }
         end
       end

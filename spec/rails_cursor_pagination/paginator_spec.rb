@@ -125,11 +125,11 @@ RSpec.describe RailsCursorPagination::Paginator do
                          '`last` cannot be negative, but was `-4`'
       end
 
-      context 'passing an invalid `decorator`' do
-        let(:params) { super().merge(decorator: "no") }
+      context 'passing an invalid `record_decorator`' do
+        let(:params) { super().merge(record_decorator: "no") }
 
         include_examples 'for a ParameterError with the right message',
-                         '`decorator` must respond to .call'
+                         '`record_decorator` must respond to .call'
       end
     end
   end
@@ -282,8 +282,8 @@ RSpec.describe RailsCursorPagination::Paginator do
         end
       end
 
-      context 'when passing a valid lambda as `&decorator`' do
-        let(:params) { { decorator: :class.to_proc } }
+      context 'when passing a valid proc as `&record_decorator`' do
+        let(:params) { { record_decorator: :class.to_proc } }
 
         it 'returns decorated records' do
           expect(subject[:page].pluck(:data)).to all be Post
