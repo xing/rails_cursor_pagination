@@ -399,9 +399,7 @@ module RailsCursorPagination
 
       relation = @relation
 
-      unless @relation.select_values.include?(:id)
-        relation = relation.select(:id)
-      end
+      relation = relation.select(:id) unless @relation.select_values.include?(:id)
 
       if custom_order_field? && !@relation.select_values.include?(@order_field)
         relation = relation.select(@order_field)
