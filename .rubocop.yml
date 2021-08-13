@@ -3,7 +3,7 @@ AllCops:
   NewCops: enable
 
 Metrics/AbcSize:
-  Max: 25
+  Max: 30
 
 # DSLs inheritly uses long blocks, like describe and contexts in RSpec,
 # therefore disable this rule for specs and for the gemspec file
@@ -13,22 +13,22 @@ Metrics/BlockLength:
   - spec/**/*
 
 Metrics/ClassLength:
-  Max: 200
+  Max: 205
 
 Metrics/CyclomaticComplexity:
   Max: 15
 
 Metrics/MethodLength:
-  Max: 25
+  Max: 30
 
 Metrics/ParameterLists:
-  Max: 7
+  Max: 8
 
 Metrics/PerceivedComplexity:
-  Max: 13
+  Max: 14
 
 Layout/LineLength:
-  Max: 80
+  Max: 95
 
 Naming/VariableNumber:
   EnforcedStyle: snake_case

@@ -42,15 +42,19 @@ module RailsCursorPagination
     #   ```
     # @param order [Symbol, nil]
     #   Ordering to apply, either `:asc` or `:desc`. Defaults to `:asc`.
+    # @param record_decorator [Object, proc { |obj| obj.itself }]
+    #   Object to which each paginated record will be passed to. Default behavior
+    #   simply returns the record itself. Object must be callable.
     #
     # @raise [RailsCursorPagination::Paginator::ParameterError]
     #   If any parameter is not valid
     def initialize(relation, first: nil, after: nil, last: nil, before: nil,
-                   order_by: nil, order: nil)
+                   order_by: nil, order: nil, record_decorator: :itself.to_proc)
       order_by ||= :id
       order ||= :asc
 
-      ensure_valid_params!(relation, first, after, last, before, order)
+      ensure_valid_params!(relation, first, after, last, before, order,
+                           record_decorator)
 
       @order_field = order_by
       @order_direction = order
@@ -63,6 +67,8 @@ module RailsCursorPagination
         first ||
         last ||
         RailsCursorPagination::Configuration.instance.default_page_size
+
+      @record_decorator = record_decorator
 
       @memos = {}
     end
@@ -99,10 +105,12 @@ module RailsCursorPagination
     #   Optional, cannot be combined with `after`
     # @param order [Symbol]
     #   Optional, must be :asc or :desc
+    # @param record_decorator [Object, proc { |obj| obj.itself }]
+    #   Optional, must respond to `.call`
     #
     # @raise [RailsCursorPagination::Paginator::ParameterError]
     #   If any parameter is not valid
-    def ensure_valid_params!(relation, first, after, last, before, order)
+    def ensure_valid_params!(relation, first, after, last, before, order, record_decorator)
       unless relation.is_a?(ActiveRecord::Relation)
         raise ParameterError,
               'The first argument must be an ActiveRecord::Relation, but was '\
@@ -127,6 +135,9 @@ module RailsCursorPagination
       if last.present? && last.negative?
         raise ParameterError, "`last` cannot be negative, but was `#{last}`"
       end
+      unless record_decorator.respond_to?(:call)
+        raise ParameterError, '`record_decorator` must respond to .call'
+      end
 
       true
     end
@@ -143,7 +154,8 @@ module RailsCursorPagination
       }
     end
 
-    # Get the records for the given page along with their cursors
+    # Get the records for the given page along with their cursors.
+    # Returned data will have been passed to record_decorator.
     #
     # @return [Array<Hash>] List of hashes, each with a `cursor` and `data`
     def page
@@ -151,7 +163,7 @@ module RailsCursorPagination
         records.map do |item|
           {
             cursor: cursor_for_record(item),
-            data: item
+            data: @record_decorator.call(item)
           }
         end
       end
@@ -393,9 +405,7 @@ module RailsCursorPagination
 
       relation = @relation
 
-      unless @relation.select_values.include?(:id)
-        relation = relation.select(:id)
-      end
+      relation = relation.select(:id) unless @relation.select_values.include?(:id)
 
       if custom_order_field? && !@relation.select_values.include?(@order_field)
         relation = relation.select(@order_field)
