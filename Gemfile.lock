@@ -46,7 +46,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.10.0)
     rspec-support (3.10.2)
-    rubocop (1.19.0)
+    rubocop (1.20.0)
       parallel (~> 1.10)
       parser (>= 3.0.0.0)
       rainbow (>= 2.2.2, < 4.0)
@@ -55,7 +55,7 @@ GEM
       rubocop-ast (>= 1.9.1, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 1.4.0, < 3.0)
-    rubocop-ast (1.10.0)
+    rubocop-ast (1.11.0)
       parser (>= 3.0.1.1)
     ruby-progressbar (1.11.0)
     tzinfo (2.0.4)
@@ -72,7 +72,7 @@ DEPENDENCIES
   rails_cursor_pagination!
   rake (~> 13.0)
   rspec (~> 3.10)
-  rubocop (~> 1.19)
+  rubocop (~> 1.20)
 
 BUNDLED WITH
    2.1.4
