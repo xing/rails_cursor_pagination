@@ -13,4 +13,4 @@ gem 'rubocop', '~> 1.22'
 
 gem 'mysql2', '~> 0.5'
 
-gem 'pg', '~> 1.2'
+gem 'pg', '~> 1.3'
