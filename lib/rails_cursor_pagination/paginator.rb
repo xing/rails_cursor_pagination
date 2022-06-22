@@ -393,6 +393,10 @@ module RailsCursorPagination
 
       relation = @relation
 
+      if relation.select_values.include?('*')
+        return relation
+      end
+
       unless @relation.select_values.include?(:id)
         relation = relation.select(:id)
       end
