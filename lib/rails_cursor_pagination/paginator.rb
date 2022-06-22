@@ -347,14 +347,7 @@ module RailsCursorPagination
     # @param record [ActiveRecord] Model instance for which we want the cursor
     # @return [String]
     def cursor_for_record(record)
-      unencoded_cursor =
-        if custom_order_field?
-          [record[@order_field], record.id]
-        else
-          record.id
-        end
-
-      Base64.strict_encode64(unencoded_cursor.to_json)
+      Cursor.encode(record, @order_field).encode
     end
 
     # Decode the provided cursor. Either just returns the cursor's ID or in case
@@ -363,10 +356,7 @@ module RailsCursorPagination
     #
     # @return [Integer, Array]
     def decoded_cursor
-      memoize(:decoded_cursor) { JSON.parse(Base64.strict_decode64(@cursor)) }
-    rescue ArgumentError, JSON::ParserError
-      raise InvalidCursorError,
-            "The given cursor `#{@cursor.inspect}` could not be decoded"
+      memoize(:decoded_cursor) { Cursor.decode(@cursor) }
     end
 
     # Return the ID of the cursor's record. In case we use an ordering by ID,
@@ -387,12 +377,6 @@ module RailsCursorPagination
     # @raise [InvalidCursorError] in case the cursor is not a tuple
     # @return [Object]
     def decoded_cursor_field
-      unless decoded_cursor.is_a? Array
-        raise InvalidCursorError,
-              "The given cursor `#{@cursor}` was decoded as "\
-              "`#{decoded_cursor.inspect}` but could not be parsed"
-      end
-
       decoded_cursor.first
     end
 

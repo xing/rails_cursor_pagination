@@ -154,6 +154,8 @@ module RailsCursorPagination
 
   require_relative 'rails_cursor_pagination/paginator'
 
+  require_relative 'rails_cursor_pagination/cursor'
+
   class << self
     # Allows to configure this gem. Currently supported configuration values
     # are:
