@@ -45,12 +45,12 @@ module RailsCursorPagination
     #
     # @raise [RailsCursorPagination::Paginator::ParameterError]
     #   If any parameter is not valid
-    def initialize(relation, first: nil, after: nil, last: nil, before: nil,
-                   order_by: nil, order: nil)
+    def initialize(relation, limit: nil, first: nil, after: nil, last: nil,
+                   before: nil, order_by: nil, order: nil)
       order_by ||= :id
       order ||= :asc
 
-      ensure_valid_params!(relation, first, after, last, before, order)
+      ensure_valid_params!(relation, limit, first, after, last, before, order)
 
       @order_field = order_by
       @order_direction = order
@@ -62,6 +62,7 @@ module RailsCursorPagination
       @page_size =
         first ||
         last ||
+        limit ||
         RailsCursorPagination::Configuration.instance.default_page_size
 
       @memos = {}
@@ -114,6 +115,12 @@ module RailsCursorPagination
       end
       if first.present? && last.present?
         raise ParameterError, '`first` cannot be combined with `last`'
+      end
+      if first.present && limit.present?
+        raise ParameterError, '`limit` cannot be combined with `first`'
+      end
+      if last.present && limit.present?
+        raise ParameterError, '`limit` cannot be combined with `last`'
       end
       if before.present? && after.present?
         raise ParameterError, '`before` cannot be combined with `after`'
@@ -393,9 +400,10 @@ module RailsCursorPagination
 
       relation = @relation
 
-      if relation.select_values.include?('*')
-        return relation
-      end
+      # TODO: Add tests
+      return relation if relation.select_values.include?('*')
+
+      # TODO: Add - allow ordering by virtual column using AS alias + tests
 
       unless @relation.select_values.include?(:id)
         relation = relation.select(:id)
