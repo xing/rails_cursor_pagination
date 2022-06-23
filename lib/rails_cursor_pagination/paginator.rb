@@ -377,12 +377,9 @@ module RailsCursorPagination
 
       relation = @relation
 
-      # TODO: Add tests
       if relation.select_values.include?('*') || relation.select_values.empty?
         return relation
       end
-
-      # TODO: Add - allow ordering by virtual column using AS alias + tests
 
       unless @relation.select_values.include?(:id)
         relation = relation.select(:id)

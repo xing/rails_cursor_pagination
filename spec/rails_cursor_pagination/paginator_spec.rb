@@ -298,7 +298,18 @@ RSpec.describe RailsCursorPagination::Paginator do
     end
 
     shared_examples_for 'a well working query that also supports SELECT' do
-      it_behaves_like 'a properly returned response'
+      context 'when SELECTing all columns' do
+
+        context 'without calling select' do
+          it_behaves_like 'a properly returned response'
+        end
+
+        context 'including the "*" select' do
+          let(:selected_attributes) { ['*'] }
+
+          it_behaves_like 'a properly returned response'
+        end
+      end
 
       context 'when SELECTing only some columns' do
         let(:selected_attributes) { %i[id author] }
