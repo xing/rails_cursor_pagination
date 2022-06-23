@@ -120,6 +120,21 @@ RailsCursorPagination::Paginator
   .fetch
 ```
 
+Alternatively, you can use the `limit` column with either `after` or `before` .
+This will behave like either `first` or `last` respectively and fetch X records.
+
+```ruby
+RailsCursorPagination::Paginator
+  .new(posts, limit: 2, after: 'MTA=')
+  .fetch
+```
+
+```ruby
+RailsCursorPagination::Paginator
+  .new(posts, last: 2, after: 'MTA=')
+  .fetch
+```
+
 ### Ordering
 
 As said, this gem ignores any previous ordering added to the passed relation.
@@ -216,7 +231,15 @@ end
 ```
 
 This would set the default page size to 50.
-                       
+
+You can also select a global `max_page_size` to prevent a client from requesting too large a page.
+
+```ruby
+RailsCursorPagination.configure do |config|
+  config.max_page_size = 100
+end
+```
+
 ### The passed relation
 
 The relation passed to the `RailsCursorPagination::Paginator` needs to be an instance of an `ActiveRecord::Relation`.
@@ -392,6 +415,18 @@ When using a custom `order_by`, this affects both filtering as well as ordering.
 Therefore, it is recommended to add an index for columns that are frequently used for ordering.
 In our test case we would want to add a compound index for the `(author, id)` column combination.
 Databases like MySQL and Postgres are able to then use the leftmost part of the index, in our case `author`, by its own _or_ can use it combined with the `id` index.
+
+If you prefer to not expose the cursor from the library and instead paginate always using the ID/UUID
+as the cursor (or any other unique column) - you can achieve this by first finding the record, and 
+using the `RailsCursorPagination::Cursor` helper class to generate a valid cursor for example.
+
+```ruby
+   record = relation.find_by!(uuid: params[:uuid])
+   cursor = RailsCursorPagination::Cursor.encode(record, params[:order_by])
+   RailsCursorPagination::Paginator
+    .new(relation, order_by: :author, first: 2, after: cursor)
+    .fetch
+```
 
 ## Development
 
