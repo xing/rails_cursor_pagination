@@ -106,6 +106,10 @@ module RailsCursorPagination
     #
     # @raise [RailsCursorPagination::Paginator::ParameterError]
     #   If any parameter is not valid
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable Metrics/PerceivedComplexity
+    # rubocop:disable Metrics/MethodLength
     def ensure_valid_params!(relation, limit, first, after, last, before, order)
       unless relation.is_a?(ActiveRecord::Relation)
         raise ParameterError,
@@ -143,6 +147,10 @@ module RailsCursorPagination
 
       true
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/CyclomaticComplexity
+    # rubocop:enable Metrics/PerceivedComplexity
+    # rubocop:enable Metrics/MethodLength
 
     # Get meta information about the current page
     #
