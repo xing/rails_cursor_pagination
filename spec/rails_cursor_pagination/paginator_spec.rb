@@ -90,6 +90,20 @@ RSpec.describe RailsCursorPagination::Paginator do
                          ' `happiness`'
       end
 
+      context 'passing both `first` and `limit`' do
+        let(:params) { super().merge(first: 2, limit: 3) }
+
+        include_examples 'for a ParameterError with the right message',
+                         '`limit` cannot be combined with `first`'
+      end
+
+      context 'passing both `last` and `limit`' do
+        let(:params) { super().merge(last: 2, limit: 3) }
+
+        include_examples 'for a ParameterError with the right message',
+                         '`limit` cannot be combined with `last`'
+      end
+
       context 'passing both `first` and `last`' do
         let(:params) { super().merge(first: 2, last: 3) }
 
@@ -109,6 +123,13 @@ RSpec.describe RailsCursorPagination::Paginator do
 
         include_examples 'for a ParameterError with the right message',
                          '`last` must be combined with `before`'
+      end
+
+      context 'passing a negative `limit`' do
+        let(:params) { super().merge(limit: -10) }
+
+        include_examples 'for a ParameterError with the right message',
+                         '`limit` cannot be negative, but was `-10`'
       end
 
       context 'passing a negative `first`' do
@@ -363,7 +384,7 @@ RSpec.describe RailsCursorPagination::Paginator do
       it_behaves_like 'a query that returns no data when relation is empty'
     end
 
-    context 'when neither first/last nor before/after are passed' do
+    context 'when neither first/last/limit nor before/after are passed' do
       include_examples 'for a working query' do
         let(:expected_posts_plain) { posts.first(10) }
         let(:expected_posts_desc) { posts.reverse.first(10) }
@@ -463,6 +484,36 @@ RSpec.describe RailsCursorPagination::Paginator do
       end
     end
 
+    context 'when only passing limit' do
+      let(:params) { { limit: 2 } }
+
+      include_examples 'for a working query' do
+        let(:expected_posts_plain) { posts.first(2) }
+        let(:expected_posts_desc) { posts.reverse.first(2) }
+
+        let(:expected_posts_by_author) { posts_by_author.first(2) }
+        let(:expected_posts_by_author_desc) { posts_by_author.reverse.first(2) }
+
+        let(:expected_has_next_page) { true }
+        let(:expected_has_previous_page) { false }
+      end
+
+      context 'when there are less records than requested' do
+        let(:params) { { first: posts.size + 1 } }
+
+        include_examples 'for a working query' do
+          let(:expected_posts_plain) { posts }
+          let(:expected_posts_desc) { posts.reverse }
+
+          let(:expected_posts_by_author) { posts_by_author }
+          let(:expected_posts_by_author_desc) { posts_by_author.reverse }
+
+          let(:expected_has_next_page) { false }
+          let(:expected_has_previous_page) { false }
+        end
+      end
+    end
+
     context 'when only passing first' do
       let(:params) { { first: 2 } }
 
@@ -511,6 +562,50 @@ RSpec.describe RailsCursorPagination::Paginator do
 
         let(:expected_has_next_page) { true }
         let(:expected_has_previous_page) { true }
+      end
+
+      context 'and `limit`' do
+        let(:params) { super().merge(limit: 2) }
+
+        include_examples 'for a working query' do
+          let(:cursor_object_plain) { posts[2] }
+          let(:expected_posts_plain) { posts[3..4] }
+
+          let(:cursor_object_desc) { posts[-2] }
+          let(:expected_posts_desc) { posts[-4..-3].reverse }
+
+          let(:cursor_object_by_author) { posts_by_author[2] }
+          let(:expected_posts_by_author) { posts_by_author[3..4] }
+
+          let(:cursor_object_by_author_desc) { posts_by_author[-2] }
+          let(:expected_posts_by_author_desc) do
+            posts_by_author[-4..-3].reverse
+          end
+
+          let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { true }
+        end
+
+        context 'when not enough records are remaining after cursor' do
+          include_examples 'for a working query' do
+            let(:cursor_object_plain) { posts[-2] }
+            let(:expected_posts_plain) { posts[-1..-1] }
+
+            let(:cursor_object_desc) { posts[1] }
+            let(:expected_posts_desc) { posts[0..0].reverse }
+
+            let(:cursor_object_by_author) { posts_by_author[-2] }
+            let(:expected_posts_by_author) { posts_by_author[-1..-1] }
+
+            let(:cursor_object_by_author_desc) { posts_by_author[1] }
+            let(:expected_posts_by_author_desc) do
+              posts_by_author[0..0].reverse
+            end
+
+            let(:expected_has_next_page) { false }
+            let(:expected_has_previous_page) { true }
+          end
+        end
       end
 
       context 'and `first`' do
@@ -576,6 +671,48 @@ RSpec.describe RailsCursorPagination::Paginator do
 
         let(:expected_has_next_page) { true }
         let(:expected_has_previous_page) { true }
+      end
+
+      context 'and `limit`' do
+        let(:params) { super().merge(limit: 2) }
+
+        include_examples 'for a working query' do
+          let(:cursor_object_plain) { posts[-1] }
+          let(:expected_posts_plain) { posts[-3..-2] }
+
+          let(:cursor_object_desc) { posts[2] }
+          let(:expected_posts_desc) { posts[3..4].reverse }
+
+          let(:cursor_object_by_author) { posts_by_author[-1] }
+          let(:expected_posts_by_author) { posts_by_author[-3..-2] }
+
+          let(:cursor_object_by_author_desc) { posts_by_author[2] }
+          let(:expected_posts_by_author_desc) { posts_by_author[3..4].reverse }
+
+          let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { true }
+        end
+
+        context 'when not enough records are remaining before cursor' do
+          include_examples 'for a working query' do
+            let(:cursor_object_plain) { posts[1] }
+            let(:expected_posts_plain) { posts[0..0] }
+
+            let(:cursor_object_desc) { posts[-2] }
+            let(:expected_posts_desc) { posts[-1..-1].reverse }
+
+            let(:cursor_object_by_author) { posts_by_author[1] }
+            let(:expected_posts_by_author) { posts_by_author[0..0] }
+
+            let(:cursor_object_by_author_desc) { posts_by_author[-2] }
+            let(:expected_posts_by_author_desc) do
+              posts_by_author[-1..-1].reverse
+            end
+
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { false }
+          end
+        end
       end
 
       context 'and `last`' do
