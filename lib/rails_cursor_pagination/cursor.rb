@@ -15,7 +15,7 @@ module RailsCursorPagination
   # page = RailsCursorPagination::Paginator.new(query, after: cursor).fetch
   #
   class Cursor
-    attr_accessor :value, :order_field
+    attr_accessor :id, :field, :order_field
 
     # Generate a cursor for the given record and ordering field. The cursor
     # encodes all the data required to then paginate based on it with the given
@@ -31,18 +31,24 @@ module RailsCursorPagination
     # Decodes an encoded cursor
     # Decode the provided cursor. Either just returns the cursor's ID or in case
     # of pagination on any other field, returns a tuple of first the cursor
-    # record's other field's value followed by its ID.
+    # record's other field's field followed by its ID.
     #
     # @param encoded [String] encoded cursor
     # @return [Integer, Array]
     def self.decode(encoded, order_field = :id)
       decoded = JSON.parse(Base64.strict_decode64(encoded))
-      if !decoded.is_a?(Array) && order_field != :id
-        raise InvalidCursorError,
-              "The given cursor `#{encoded}` was decoded as "\
-              "`#{decoded}` but could not be parsed"
+      unless decoded.is_a?(Array)
+
+        if order_field != :id
+          raise InvalidCursorError,
+                "The given cursor `#{encoded}` was decoded as "\
+                "`#{decoded}` but could not be parsed"
+        end
+
+        return new(decoded, :id)
       end
-      decoded
+
+      new(decoded[1], order_field, decoded[0])
     rescue ArgumentError, JSON::ParserError
       raise InvalidCursorError,
             "The given cursor `#{@cursor.inspect}` could not be decoded"
@@ -51,12 +57,13 @@ module RailsCursorPagination
     # Initializes the record
     #
     # @param id [Integer] the ID of the cursor record.
-    # @param order_field [Symbol] the column or virtual column for ordering
-    # @param value the value that the virtual column takes on the cursor record.
-    def initialize(id, order_field, value = nil)
+    # @param order_field [Symbol] the column or virtual column for ordering.
+    # @param field the value that the order_field column on the cursor record
+    # (if the order field is not an id).
+    def initialize(id, order_field, field = nil)
       @id = id
       @order_field = order_field
-      @value = value
+      @field = field
     end
 
     # Encodes the field and id (or only id)
@@ -64,7 +71,7 @@ module RailsCursorPagination
     def encode
       unencoded_cursor =
         if custom_order_field?
-          [@value, @id]
+          [@field, @id]
         else
           @id
         end
