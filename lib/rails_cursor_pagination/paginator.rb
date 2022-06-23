@@ -67,7 +67,7 @@ module RailsCursorPagination
       @page_size = [
         @page_size,
         RailsCursorPagination::Configuration.instance.max_page_size
-      ].min
+      ].compact.min
       @memos = {}
     end
 

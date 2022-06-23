@@ -25,7 +25,7 @@ module RailsCursorPagination
     # Reset all values to their defaults
     def reset!
       @default_page_size = 10
-      @max_page_size = 100
+      @max_page_size = nil
     end
   end
 end

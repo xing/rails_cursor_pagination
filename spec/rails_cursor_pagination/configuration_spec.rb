@@ -11,6 +11,7 @@ RSpec.describe RailsCursorPagination::Configuration do
 
     it 'sets the default values' do
       expect(described_class.instance.default_page_size).to eq 10
+      expect(described_class.instance.max_page_size).to be_nil
     end
   end
 
