@@ -15,6 +15,7 @@ These are the latest changes on the project's `master` branch that have not yet 
 --->
 
 - Adds a `max_page_size` to the configuration, allowing to set a global limit to the page size (non overridable): Default `nil`
+- Supports explicitly requesting all columns without re-including the requested column
 - Require multi-factor-authentication to publish the gem on Rubygems
 
 ## [0.2.0] - 2021-04-19
