@@ -277,8 +277,6 @@ RSpec.describe RailsCursorPagination::Paginator do
     end
 
     shared_examples_for 'a well working query that also supports SELECT' do
-      it_behaves_like 'a properly returned response'
-
       context 'when SELECTing all columns' do
         context 'without calling select' do
           it_behaves_like 'a properly returned response'
