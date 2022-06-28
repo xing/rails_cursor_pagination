@@ -404,6 +404,52 @@ RSpec.describe RailsCursorPagination::Paginator do
         end
       end
 
+      context 'when a max_page_size has been set' do
+        let(:max_page_size) { 2 }
+
+        before do
+          RailsCursorPagination.configure do |config|
+            config.max_page_size = max_page_size
+          end
+        end
+
+        after { RailsCursorPagination.configure(&:reset!) }
+
+        include_examples 'for a working query' do
+          let(:expected_posts_plain) { posts.first(max_page_size) }
+          let(:expected_posts_desc) { posts.reverse.first(max_page_size) }
+
+          let(:expected_posts_by_author) do
+            posts_by_author.first(max_page_size)
+          end
+          let(:expected_posts_by_author_desc) do
+            posts_by_author.reverse.first(max_page_size)
+          end
+
+          let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { false }
+        end
+
+        context 'when attempting to go over the limit' do
+          let(:params) { { first: 5 } }
+
+          include_examples 'for a working query' do
+            let(:expected_posts_plain) { posts.first(max_page_size) }
+            let(:expected_posts_desc) { posts.reverse.first(max_page_size) }
+
+            let(:expected_posts_by_author) do
+              posts_by_author.first(max_page_size)
+            end
+            let(:expected_posts_by_author_desc) do
+              posts_by_author.reverse.first(max_page_size)
+            end
+
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { false }
+          end
+        end
+      end
+
       context 'when `order` and `order_by` are explicitly set to `nil`' do
         let(:params) { super().merge(order: nil, order_by: nil) }
 
