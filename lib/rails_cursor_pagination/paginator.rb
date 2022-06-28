@@ -45,12 +45,12 @@ module RailsCursorPagination
     #
     # @raise [RailsCursorPagination::Paginator::ParameterError]
     #   If any parameter is not valid
-    def initialize(relation, first: nil, after: nil, last: nil, before: nil,
-                   order_by: nil, order: nil)
+    def initialize(relation, limit: nil, first: nil, after: nil, last: nil,
+                   before: nil, order_by: nil, order: nil)
       order_by ||= :id
       order ||= :asc
 
-      ensure_valid_params!(relation, first, after, last, before, order)
+      ensure_valid_params!(relation, limit, first, after, last, before, order)
 
       @order_field = order_by
       @order_direction = order
@@ -62,6 +62,7 @@ module RailsCursorPagination
       @page_size =
         first ||
         last ||
+        limit ||
         RailsCursorPagination::Configuration.instance.default_page_size
 
       @memos = {}
@@ -83,18 +84,24 @@ module RailsCursorPagination
 
     private
 
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/CyclomaticComplexity
+    # rubocop:disable Metrics/PerceivedComplexity
+    # rubocop:disable Metrics/MethodLength
     # Ensure that the parameters of this service are valid. Otherwise raise
     # a `RailsCursorPagination::Paginator::ParameterError`.
     #
     # @param relation [ActiveRecord::Relation]
     #   Relation that will be paginated.
+    # @param limit [Integer, nil]
+    #   Optional, must be positive, cannot be combined with `last` or `first`
     # @param first [Integer, nil]
-    #   Optional, must be positive, cannot be combined with `last`
+    #   Optional, must be positive, cannot be combined with `last` or `limit`
     # @param after [String, nil]
     #   Optional, cannot be combined with `before`
     # @param last [Integer, nil]
     #   Optional, must be positive, requires `before`, cannot be combined
-    #   with `first`
+    #   with `first` or `limit`
     # @param before [String, nil]
     #   Optional, cannot be combined with `after`
     # @param order [Symbol]
@@ -102,7 +109,7 @@ module RailsCursorPagination
     #
     # @raise [RailsCursorPagination::Paginator::ParameterError]
     #   If any parameter is not valid
-    def ensure_valid_params!(relation, first, after, last, before, order)
+    def ensure_valid_params!(relation, limit, first, after, last, before, order)
       unless relation.is_a?(ActiveRecord::Relation)
         raise ParameterError,
               'The first argument must be an ActiveRecord::Relation, but was '\
@@ -114,6 +121,12 @@ module RailsCursorPagination
       end
       if first.present? && last.present?
         raise ParameterError, '`first` cannot be combined with `last`'
+      end
+      if first.present? && limit.present?
+        raise ParameterError, '`limit` cannot be combined with `first`'
+      end
+      if last.present? && limit.present?
+        raise ParameterError, '`limit` cannot be combined with `last`'
       end
       if before.present? && after.present?
         raise ParameterError, '`before` cannot be combined with `after`'
@@ -127,9 +140,16 @@ module RailsCursorPagination
       if last.present? && last.negative?
         raise ParameterError, "`last` cannot be negative, but was `#{last}`"
       end
+      if limit.present? && limit.negative?
+        raise ParameterError, "`limit` cannot be negative, but was `#{limit}`"
+      end
 
       true
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/CyclomaticComplexity
+    # rubocop:enable Metrics/PerceivedComplexity
+    # rubocop:enable Metrics/MethodLength
 
     # Get meta information about the current page
     #
