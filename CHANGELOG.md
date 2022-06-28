@@ -13,7 +13,7 @@ These are the latest changes on the project's `master` branch that have not yet 
   This will ensure that they're also mentioned in the next release description.
   Follow the same format as previous releases by categorizing your feature into "Added", "Changed", "Deprecated", "Removed", "Fixed", or "Security".
 --->
-
+- Supports explicitly requesting all columns without re-including the requested column
 - Require multi-factor-authentication to publish the gem on Rubygems
 
 ## [0.2.0] - 2021-04-19
