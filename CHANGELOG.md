@@ -14,6 +14,7 @@ These are the latest changes on the project's `master` branch that have not yet 
   Follow the same format as previous releases by categorizing your feature into "Added", "Changed", "Deprecated", "Removed", "Fixed", or "Security".
 --->
 
+- Adds a `max_page_size` to the configuration, allowing to set a global limit to the page size (non overridable): Default `nil`
 - Require multi-factor-authentication to publish the gem on Rubygems
 
 ## [0.2.0] - 2021-04-19
