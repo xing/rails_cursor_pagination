@@ -10,12 +10,13 @@ module RailsCursorPagination
   #
   #    RailsCursorPagination.configure do |config|
   #      config.default_page_size = 42
+  #      config.max_page_size = 100
   #    end
   #
   class Configuration
     include Singleton
 
-    attr_accessor :default_page_size
+    attr_accessor :default_page_size, :max_page_size
 
     # Ensure the default values are set on first initialization
     def initialize
@@ -25,6 +26,7 @@ module RailsCursorPagination
     # Reset all values to their defaults
     def reset!
       @default_page_size = 10
+      @max_page_size = nil
     end
   end
 end

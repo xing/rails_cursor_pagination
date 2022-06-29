@@ -277,7 +277,17 @@ RSpec.describe RailsCursorPagination::Paginator do
     end
 
     shared_examples_for 'a well working query that also supports SELECT' do
-      it_behaves_like 'a properly returned response'
+      context 'when SELECTing all columns' do
+        context 'without calling select' do
+          it_behaves_like 'a properly returned response'
+        end
+
+        context 'including the "*" select' do
+          let(:selected_attributes) { ['*'] }
+
+          it_behaves_like 'a properly returned response'
+        end
+      end
 
       context 'when SELECTing only some columns' do
         let(:selected_attributes) { %i[id author] }
@@ -401,6 +411,52 @@ RSpec.describe RailsCursorPagination::Paginator do
 
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { false }
+        end
+      end
+
+      context 'when a max_page_size has been set' do
+        let(:max_page_size) { 2 }
+
+        before do
+          RailsCursorPagination.configure do |config|
+            config.max_page_size = max_page_size
+          end
+        end
+
+        after { RailsCursorPagination.configure(&:reset!) }
+
+        include_examples 'for a working query' do
+          let(:expected_posts_plain) { posts.first(max_page_size) }
+          let(:expected_posts_desc) { posts.reverse.first(max_page_size) }
+
+          let(:expected_posts_by_author) do
+            posts_by_author.first(max_page_size)
+          end
+          let(:expected_posts_by_author_desc) do
+            posts_by_author.reverse.first(max_page_size)
+          end
+
+          let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { false }
+        end
+
+        context 'when attempting to go over the limit' do
+          let(:params) { { first: 5 } }
+
+          include_examples 'for a working query' do
+            let(:expected_posts_plain) { posts.first(max_page_size) }
+            let(:expected_posts_desc) { posts.reverse.first(max_page_size) }
+
+            let(:expected_posts_by_author) do
+              posts_by_author.first(max_page_size)
+            end
+            let(:expected_posts_by_author_desc) do
+              posts_by_author.reverse.first(max_page_size)
+            end
+
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { false }
+          end
         end
       end
 
