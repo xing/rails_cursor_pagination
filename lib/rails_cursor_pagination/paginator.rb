@@ -64,10 +64,11 @@ module RailsCursorPagination
         last ||
         RailsCursorPagination::Configuration.instance.default_page_size
 
-      @page_size = [
-        @page_size,
-        RailsCursorPagination::Configuration.instance.max_page_size
-      ].compact.min
+      if Configuration.instance.max_page_size &&
+         Configuration.instance.max_page_size < @page_size
+        @page_size = Configuration.instance.max_page_size
+      end
+
       @memos = {}
     end
 
