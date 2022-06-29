@@ -216,7 +216,15 @@ end
 ```
 
 This would set the default page size to 50.
-                       
+
+You can also select a global `max_page_size` to prevent a client from requesting too large a page.
+
+```ruby
+RailsCursorPagination.configure do |config|
+  config.max_page_size = 100
+end
+```
+
 ### The passed relation
 
 The relation passed to the `RailsCursorPagination::Paginator` needs to be an instance of an `ActiveRecord::Relation`.

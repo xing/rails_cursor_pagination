@@ -13,6 +13,8 @@ These are the latest changes on the project's `master` branch that have not yet 
   This will ensure that they're also mentioned in the next release description.
   Follow the same format as previous releases by categorizing your feature into "Added", "Changed", "Deprecated", "Removed", "Fixed", or "Security".
 --->
+
+- Adds a `max_page_size` to the configuration, allowing to set a global limit to the page size (non overridable): Default `nil`
 - Supports explicitly requesting all columns without re-including the requested column
 - Require multi-factor-authentication to publish the gem on Rubygems
 
