@@ -65,6 +65,11 @@ module RailsCursorPagination
         limit ||
         RailsCursorPagination::Configuration.instance.default_page_size
 
+      if Configuration.instance.max_page_size &&
+         Configuration.instance.max_page_size < @page_size
+        @page_size = Configuration.instance.max_page_size
+      end
+
       @memos = {}
     end
 
@@ -409,7 +414,8 @@ module RailsCursorPagination
     #
     # @return [ActiveRecord::Relation]
     def relation_with_cursor_fields
-      return @relation if @relation.select_values.blank?
+      return @relation if @relation.select_values.blank? ||
+                          @relation.select_values.include?('*')
 
       relation = @relation
 

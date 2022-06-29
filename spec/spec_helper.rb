@@ -20,13 +20,13 @@ RSpec.configure do |config|
 
   # Set up database to use for tests
   ActiveRecord::Base.logger = Logger.new(ENV['VERBOSE'] ? $stdout : nil)
-  ActiveRecord::Migration.verbose = ENV['VERBOSE']
+  ActiveRecord::Migration.verbose = ENV.fetch('VERBOSE', nil)
 
   ActiveRecord::Base.establish_connection(
-    adapter: ENV['DB_ADAPTER'] || 'mysql2',
+    adapter: ENV.fetch('DB_ADAPTER', 'mysql2'),
     database: 'rails_cursor_pagination_testing',
-    host: ENV['DB_HOST'],
-    username: ENV['DB_USER']
+    host: ENV.fetch('DB_HOST', nil),
+    username: ENV.fetch('DB_USER', nil)
   )
 
   # Ensure we have an empty `posts` table with the right format
