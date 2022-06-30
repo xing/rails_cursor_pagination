@@ -131,7 +131,7 @@ RailsCursorPagination::Paginator
 
 ```ruby
 RailsCursorPagination::Paginator
-  .new(posts, last: 2, after: 'MTA=')
+  .new(posts, limit: 2, before: 'MTA=')
   .fetch
 ```
 
