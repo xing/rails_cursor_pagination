@@ -28,14 +28,18 @@ module RailsCursorPagination
       new(record.id, order_field, record[order_field]).encode
     end
 
-    # Decodes an encoded cursor
-    # Decode the provided cursor. Either just returns the cursor's ID or in case
-    # of pagination on any other field, returns a tuple of first the cursor
-    # record's other field's field followed by its ID.
+    # Decode the provided encoded cursor. Returns an instance of this
+    # +RailsCursorPagination::Cursor+ class containing either just the cursor's
+    # ID or in case of pagination on any other field, containing both the ID and
+    # the ordering field value.
     #
-    # @param encoded [String] encoded cursor
-    # @return [Integer, Array]
-    def self.decode(encoded, order_field = :id)
+    # @param encoded_string [String]
+    #   The encoded cursor
+    # @param order_field [Symbol]
+    #   Optional. The column that is being ordered on in case it's not the ID
+    #   column
+    # @return [RailsCursorPagination::Cursor]
+    def self.decode(encoded_string:, order_field: :id)
       decoded = JSON.parse(Base64.strict_decode64(encoded))
       unless decoded.is_a?(Array)
 
