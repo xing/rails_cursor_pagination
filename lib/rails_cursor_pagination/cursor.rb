@@ -19,8 +19,10 @@ module RailsCursorPagination
     # encodes all the data required to then paginate based on it with the given
     # ordering field.
     #
-    # @param record [ActiveRecord] Model instance for which we want the cursor
-    # @param order_field [Symbol] column or virtual column for the record.
+    # @param record [ActiveRecord]
+    #   Model instance for which we want the cursor
+    # @param order_field [Symbol]
+    #   Column or virtual column of the record that the relation is ordered by
     # @return [String]
     def self.encode(record, order_field)
       new(record.id, order_field, record[order_field]).encode
