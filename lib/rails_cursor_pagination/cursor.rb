@@ -1,16 +1,18 @@
 # frozen_string_literal: true
 
 module RailsCursorPagination
-  # Cursor class to provide some wrapped functionality around cursor.
+  # Cursor class that's used to uniquely identify a record and serialize and
+  # deserialize this cursor so that it can be used for pagination. 
   #
-  # When to use:
-  # If you want to paginate without using the cursor string and want to use
-  # an alternative identifier as cursor (like the ID or a UUID)
+  # This class can explicitly be used if you want to paginate without sending
+  # the encoded cursor string to the client and want to expose an alternative
+  # identifier (like e.g. the ID or a UUID). In that case, the record will first
+  # need to be fetched to then generate the cursor needed by this library.
   #
-  # How to use:
-  #
-  # cursor = RailsCursorPagination::Cursor.encode(record, :name)
-  # page = RailsCursorPagination::Paginator.new(query, after: cursor).fetch
+  # Usage:
+  #     record = MyModel.find(params[:my_own_id])
+  #     cursor = RailsCursorPagination::Cursor.encode(record, :name)
+  #     page = RailsCursorPagination::Paginator.new(query, after: cursor).fetch
   #
   class Cursor
     attr_accessor :id, :field, :order_field
