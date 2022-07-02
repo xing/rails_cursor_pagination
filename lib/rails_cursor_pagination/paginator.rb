@@ -11,13 +11,9 @@ module RailsCursorPagination
   #       .fetch
   #
   class Paginator
-    # Generic error that gets raised when invalid parameters are passed to the
-    # Paginator initializer
-    class ParameterError < Error; end
-
     # Error that gets raised if a cursor given as `before` or `after` parameter
     # cannot be properly parsed
-    class InvalidCursorError < ParameterError; end
+    class InvalidCursorError < ParameterValidation::ParameterError; end
 
     # Create a new instance of the `RailsCursorPagination::Paginator`
     #
@@ -92,10 +88,6 @@ module RailsCursorPagination
 
     private
 
-    # rubocop:disable Metrics/AbcSize
-    # rubocop:disable Metrics/CyclomaticComplexity
-    # rubocop:disable Metrics/PerceivedComplexity
-    # rubocop:disable Metrics/MethodLength
     # Ensure that the parameters of this service are valid. Otherwise raise
     # a `RailsCursorPagination::Paginator::ParameterError`.
     #
@@ -118,46 +110,28 @@ module RailsCursorPagination
     # @raise [RailsCursorPagination::Paginator::ParameterError]
     #   If any parameter is not valid
     def ensure_valid_params!(relation, limit, first, after, last, before, order)
-      unless relation.is_a?(ActiveRecord::Relation)
-        raise ParameterError,
-              'The first argument must be an ActiveRecord::Relation, but was '\
-              "the #{relation.class} `#{relation.inspect}`"
-      end
-      unless %i[asc desc].include?(order)
-        raise ParameterError,
-              "`order` must be either :asc or :desc, but was `#{order}`"
-      end
-      if first.present? && last.present?
-        raise ParameterError, '`first` cannot be combined with `last`'
-      end
-      if first.present? && limit.present?
-        raise ParameterError, '`limit` cannot be combined with `first`'
-      end
-      if last.present? && limit.present?
-        raise ParameterError, '`limit` cannot be combined with `last`'
-      end
-      if before.present? && after.present?
-        raise ParameterError, '`before` cannot be combined with `after`'
-      end
-      if last.present? && before.blank?
-        raise ParameterError, '`last` must be combined with `before`'
-      end
-      if first.present? && first.negative?
-        raise ParameterError, "`first` cannot be negative, but was `#{first}`"
-      end
-      if last.present? && last.negative?
-        raise ParameterError, "`last` cannot be negative, but was `#{last}`"
-      end
-      if limit.present? && limit.negative?
-        raise ParameterError, "`limit` cannot be negative, but was `#{limit}`"
+      ParameterValidation.new(:type, ActiveRecord::Relation)
+                         .validate!({ 'The first argument' => relation })
+      ParameterValidation.new(:positive_or_nil).validate!({ last: last })
+      ParameterValidation.new(:positive_or_nil).validate!({ first: first })
+      ParameterValidation.new(:positive_or_nil).validate!({ limit: limit })
+      ParameterValidation.new(:in_values, %i[asc desc])
+                         .validate!({ order: order })
+      ParameterValidation.new(:use_only_one)
+                         .validate!({ first: first, last: last })
+      ParameterValidation.new(:use_only_one)
+                         .validate!({ before: before, after: after })
+      ParameterValidation.new(:use_only_one)
+                         .validate!({ limit: limit, first: first })
+      ParameterValidation.new(:use_only_one)
+                         .validate!({ limit: limit, last: last })
+      if last
+        ParameterValidation.new(:use_together)
+                           .validate!({ last: last, before: before })
       end
 
       true
     end
-    # rubocop:enable Metrics/AbcSize
-    # rubocop:enable Metrics/CyclomaticComplexity
-    # rubocop:enable Metrics/PerceivedComplexity
-    # rubocop:enable Metrics/MethodLength
 
     # Get meta information about the current page
     #

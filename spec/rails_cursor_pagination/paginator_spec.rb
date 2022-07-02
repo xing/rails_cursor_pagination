@@ -67,9 +67,9 @@ RSpec.describe RailsCursorPagination::Paginator do
     context 'when passing invalid parameters' do
       shared_examples 'for a ParameterError with the right message' do |message|
         it 'raises an error with the right message' do
-          expect { subject }
-            .to raise_error ::RailsCursorPagination::Paginator::ParameterError,
-                            message
+          error_namespace = ::RailsCursorPagination::ParameterValidation
+          error_klass = error_namespace::ParameterError
+          expect { subject }.to raise_error error_klass, message
         end
       end
 
@@ -77,7 +77,7 @@ RSpec.describe RailsCursorPagination::Paginator do
         let(:relation) { :tasty_cookies }
 
         include_examples 'for a ParameterError with the right message',
-                         'The first argument must be an '\
+                         '`The first argument` must be an '\
                          'ActiveRecord::Relation, but was the Symbol '\
                          '`:tasty_cookies`'
       end

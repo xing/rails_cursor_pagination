@@ -148,6 +148,8 @@
 module RailsCursorPagination
   class Error < StandardError; end
 
+  require_relative 'rails_cursor_pagination/parameter_validation'
+
   require_relative 'rails_cursor_pagination/version'
 
   require_relative 'rails_cursor_pagination/configuration'
