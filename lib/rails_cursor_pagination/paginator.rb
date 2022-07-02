@@ -23,6 +23,9 @@ module RailsCursorPagination
     #
     # @param relation [ActiveRecord::Relation]
     #   Relation that will be paginated.
+    # @param limit [Integer, nil]
+    #   Number of records to return in pagination. Can be combined with either
+    #   `after` or `before` as an alternative to `first` or `last`.
     # @param first [Integer, nil]
     #   Number of records to return in a forward pagination. Can be combined
     #   with `after`.
