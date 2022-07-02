@@ -120,7 +120,7 @@ RailsCursorPagination::Paginator
   .fetch
 ```
 
-Alternatively, you can use the `limit` column with either `after` or `before` .
+Alternatively, you can use the `limit` column with either `after` or `before`.
 This will behave like either `first` or `last` respectively and fetch X records.
 
 ```ruby
