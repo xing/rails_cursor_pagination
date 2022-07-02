@@ -88,6 +88,7 @@ module RailsCursorPagination
     private
 
     # Returns true when the order has been overridden from the default (ID)
+    #
     # @return [Boolean]
     def custom_order_field?
       @order_field != :id
