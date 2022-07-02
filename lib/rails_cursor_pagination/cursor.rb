@@ -54,10 +54,13 @@ module RailsCursorPagination
 
     # Initializes the record
     #
-    # @param id [Integer] the ID of the cursor record.
-    # @param order_field [Symbol] the column or virtual column for ordering.
-    # @param field the value that the order_field column on the cursor record
-    # (if the order field is not an id).
+    # @param id [Integer]
+    #   The ID of the cursor record
+    # @param order_field [Symbol]
+    #   The column or virtual column for ordering
+    # @param field [Object]
+    #   Optional. The value that the +order_field+ of the record contains in
+    #   case that the order field is not the ID
     def initialize(id, order_field, field = nil)
       @id = id
       @order_field = order_field
