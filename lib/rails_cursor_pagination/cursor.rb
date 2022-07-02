@@ -73,7 +73,14 @@ module RailsCursorPagination
       @field = field
     end
 
-    # Encodes the field and id (or only id)
+    # Generate an encoded string for this cursor. The cursor encodes all the
+    # data required to then paginate based on it with the given ordering field.
+    #
+    # If we only order by ID, the cursor doesn't need to include any other data.
+    # But if we order by any other field, the cursor needs to include both the
+    # value from this other field as well as the records ID to resolve the order
+    # of duplicates in the non-ID field.
+    #
     # @return [String]
     def encode
       unencoded_cursor =
