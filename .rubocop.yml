@@ -13,7 +13,7 @@ Metrics/BlockLength:
   - spec/**/*
 
 Metrics/ClassLength:
-  Max: 183
+  Max: 186
 
 Metrics/CyclomaticComplexity:
   Max: 15

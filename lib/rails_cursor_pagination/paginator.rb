@@ -324,7 +324,7 @@ module RailsCursorPagination
     def filter_value
       return decoded_cursor.id unless custom_order_field?
 
-      "#{decoded_cursor.field}-#{decoded_cursor.id}"
+      "#{decoded_cursor.order_field_value}-#{decoded_cursor.id}"
     end
 
     # Generate a cursor for the given record and ordering field. The cursor
@@ -339,7 +339,7 @@ module RailsCursorPagination
     # @param record [ActiveRecord] Model instance for which we want the cursor
     # @return [String]
     def cursor_for_record(record)
-      Cursor.encode(record, @order_field).encode
+      Cursor.encode(record: record, order_field: @order_field).encode
     end
 
     # Decode the provided cursor. Either just returns the cursor's ID or in case
@@ -348,7 +348,9 @@ module RailsCursorPagination
     #
     # @return [Integer, Array]
     def decoded_cursor
-      memoize(:decoded_cursor) { Cursor.decode(@cursor, @order_field) }
+      memoize(:decoded_cursor) do
+        Cursor.decode(encoded_string: @cursor, order_field: @order_field)
+      end
     end
 
     # Ensure that the relation has the ID column and any potential `order_by`
@@ -426,10 +428,11 @@ module RailsCursorPagination
         end
 
         sorted_relation
-          .where("#{@order_field} #{filter_operator} ?", decoded_cursor.field)
+          .where("#{@order_field} #{filter_operator} ?",
+                 decoded_cursor.order_field_value)
           .or(
             sorted_relation
-              .where("#{@order_field} = ?", decoded_cursor.field)
+              .where("#{@order_field} = ?", decoded_cursor.order_field_value)
               .where("#{id_column} #{filter_operator} ?", decoded_cursor.id)
           )
       end
