@@ -21,49 +21,51 @@ module RailsCursorPagination
 
     attr_reader :id, :order_field_value
 
-    # Generate a cursor for the given record and ordering field. The cursor
-    # encodes all the data required to then paginate based on it with the given
-    # ordering field.
-    #
-    # @param record [ActiveRecord]
-    #   Model instance for which we want the cursor
-    # @param order_field [Symbol]
-    #   Column or virtual column of the record that the relation is ordered by
-    # @return [String]
-    def self.encode(record:, order_field: :id)
-      new(id: record.id, order_field: order_field,
-          order_field_value: record[order_field]).encode
-    end
-
-    # Decode the provided encoded cursor. Returns an instance of this
-    # +RailsCursorPagination::Cursor+ class containing either just the cursor's
-    # ID or in case of pagination on any other field, containing both the ID and
-    # the ordering field value.
-    #
-    # @param encoded_string [String]
-    #   The encoded cursor
-    # @param order_field [Symbol]
-    #   Optional. The column that is being ordered on in case it's not the ID
-    #   column
-    # @return [RailsCursorPagination::Cursor]
-    def self.decode(encoded_string:, order_field: :id)
-      decoded = JSON.parse(Base64.strict_decode64(encoded_string))
-      unless decoded.is_a?(Array)
-
-        if order_field != :id
-          raise InvalidCursorError,
-                "The given cursor `#{encoded_string}` was decoded as "\
-                "`#{decoded}` but could not be parsed"
-        end
-
-        return new(id: decoded, order_field: :id)
+    class << self
+      # Generate a cursor for the given record and ordering field. The cursor
+      # encodes all the data required to then paginate based on it with the
+      # given ordering field.
+      #
+      # @param record [ActiveRecord]
+      #   Model instance for which we want the cursor
+      # @param order_field [Symbol]
+      #   Column or virtual column of the record that the relation is ordered by
+      # @return [String]
+      def encode(record:, order_field: :id)
+        new(id: record.id, order_field: order_field,
+            order_field_value: record[order_field]).encode
       end
 
-      new(id: decoded[1], order_field: order_field,
-          order_field_value: decoded[0])
-    rescue ArgumentError, JSON::ParserError
-      raise InvalidCursorError,
-            "The given cursor `#{@cursor.inspect}` could not be decoded"
+      # Decode the provided encoded cursor. Returns an instance of this
+      # +RailsCursorPagination::Cursor+ class containing either just the
+      # cursor's ID or in case of pagination on any other field, containing
+      # both the ID and the ordering field value.
+      #
+      # @param encoded_string [String]
+      #   The encoded cursor
+      # @param order_field [Symbol]
+      #   Optional. The column that is being ordered on in case it's not the ID
+      #   column
+      # @return [RailsCursorPagination::Cursor]
+      def decode(encoded_string:, order_field: :id)
+        decoded = JSON.parse(Base64.strict_decode64(encoded_string))
+        unless decoded.is_a?(Array)
+
+          if order_field != :id
+            raise InvalidCursorError,
+                  "The given cursor `#{encoded_string}` was decoded as "\
+                  "`#{decoded}` but could not be parsed"
+          end
+
+          return new(id: decoded, order_field: :id)
+        end
+
+        new(id: decoded[1], order_field: order_field,
+            order_field_value: decoded[0])
+      rescue ArgumentError, JSON::ParserError
+        raise InvalidCursorError,
+              "The given cursor `#{@cursor.inspect}` could not be decoded"
+      end
     end
 
     # Initializes the record
