@@ -18,6 +18,7 @@ module RailsCursorPagination
     # Generic error that gets raised when invalid parameters are passed to the
     # Paginator initializer
     class ParameterError < Error; end
+    class InvalidCursorError < ParameterError; end
 
     attr_reader :id, :order_field_value
 
@@ -49,22 +50,25 @@ module RailsCursorPagination
       # @return [RailsCursorPagination::Cursor]
       def decode(encoded_string:, order_field: :id)
         decoded = JSON.parse(Base64.strict_decode64(encoded_string))
-        unless decoded.is_a?(Array)
-
-          if order_field != :id
+        if order_field == :id
+          if decoded.is_a?(Array)
             raise InvalidCursorError,
                   "The given cursor `#{encoded_string}` was decoded as "\
                   "`#{decoded}` but could not be parsed"
           end
-
-          return new(id: decoded, order_field: :id)
+          new(id: decoded, order_field: :id)
+        else
+          unless decoded.is_a?(Array) && decoded.size == 2
+            raise InvalidCursorError,
+                  "The given cursor `#{encoded_string}` was decoded as "\
+                  "`#{decoded}` but could not be parsed"
+          end
+          new(id: decoded[1], order_field: order_field,
+              order_field_value: decoded[0])
         end
-
-        new(id: decoded[1], order_field: order_field,
-            order_field_value: decoded[0])
       rescue ArgumentError, JSON::ParserError
         raise InvalidCursorError,
-              "The given cursor `#{@cursor.inspect}` could not be decoded"
+              "The given cursor `#{encoded_string}` could not be decoded"
       end
     end
 
@@ -84,8 +88,9 @@ module RailsCursorPagination
 
       return if !custom_order_field? || !order_field_value.nil?
 
-      raise ParameterError, "The `order_field` was set to `#{@order_field}` "\
-                            'but no `order_field_value was set'
+      raise ParameterError, 'The `order_field` was set to '\
+                            "`#{@order_field.inspect}` but "\
+                            'no `order_field_value` was set'
     end
 
     # Generate an encoded string for this cursor. The cursor encodes all the
