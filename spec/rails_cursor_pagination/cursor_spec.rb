@@ -53,7 +53,7 @@ RSpec.describe RailsCursorPagination::Cursor do
     end
   end
 
-  describe 'from_record' do
+  describe '.from_record' do
     let(:record) { Post.create! id: 1, author: 'John', content: 'Post 1' }
 
     context 'when not specifying the order_field' do
