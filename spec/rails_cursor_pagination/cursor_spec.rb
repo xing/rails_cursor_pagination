@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 RSpec.describe RailsCursorPagination::Cursor do
-  describe '.encode' do
+  describe '#encode' do
     let(:record) { Post.create! id: 1, author: 'John', content: 'Post 1' }
 
     context 'when ordering by id implicitly' do
       subject(:encoded) do
-        described_class.encode(record: record)
+        described_class.from_record(record: record).encode
       end
 
       it 'produces a valid string' do
@@ -21,7 +21,7 @@ RSpec.describe RailsCursorPagination::Cursor do
 
     context 'when ordering by id explicitly' do
       subject(:encoded) do
-        described_class.encode(record: record, order_field: :id)
+        described_class.from_record(record: record, order_field: :id).encode
       end
 
       it 'produces a valid string' do
@@ -37,7 +37,7 @@ RSpec.describe RailsCursorPagination::Cursor do
 
     context 'when ordering by author' do
       subject(:encoded) do
-        described_class.encode(record: record, order_field: :author)
+        described_class.from_record(record: record, order_field: :author).encode
       end
 
       it 'produces a valid string' do
@@ -53,10 +53,38 @@ RSpec.describe RailsCursorPagination::Cursor do
     end
   end
 
+  describe 'from_record' do
+    let(:record) { Post.create! id: 1, author: 'John', content: 'Post 1' }
+
+    context 'when not specifying the order_field' do
+      subject(:from_record) { described_class.from_record(record: record) }
+
+      it 'returns a cursor with the same ID as the record' do
+        expect(from_record).to be_a(RailsCursorPagination::Cursor)
+        expect(from_record.id).to eq record.id
+      end
+    end
+
+    context 'when specifying the order_field' do
+      subject(:from_record) do
+        described_class.from_record(record: record, order_field: :author)
+      end
+
+      it 'returns a cursor with the same ID as the record' do
+        expect(from_record).to be_a(RailsCursorPagination::Cursor)
+        expect(from_record.id).to eq record.id
+      end
+
+      it 'returns a cursor with the order_field_value as the record' do
+        expect(from_record.order_field_value).to eq record.author
+      end
+    end
+  end
+
   describe '.decode' do
     context 'when decoding an encoded message with order_field :id' do
       let(:record) { Post.create! id: 1, author: 'John', content: 'Post 1' }
-      let(:encoded) { described_class.encode(record: record) }
+      let(:encoded) { described_class.from_record(record: record).encode }
 
       context 'and the order_field to decode is set to :id (implicitly)' do
         subject(:decoded) do
@@ -97,7 +125,7 @@ RSpec.describe RailsCursorPagination::Cursor do
     context 'when decoding an encoded message with order_field :author' do
       let(:record) { Post.create! id: 1, author: 'John', content: 'Post 1' }
       let(:encoded) do
-        described_class.encode(record: record, order_field: :author)
+        described_class.from_record(record: record, order_field: :author).encode
       end
 
       context 'and the order_field to decode is set to :id' do

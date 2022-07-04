@@ -339,7 +339,7 @@ module RailsCursorPagination
     # @param record [ActiveRecord] Model instance for which we want the cursor
     # @return [String]
     def cursor_for_record(record)
-      Cursor.encode(record: record, order_field: @order_field).encode
+      Cursor.from_record(record: record, order_field: @order_field).encode
     end
 
     # Decode the provided cursor. Either just returns the cursor's ID or in case

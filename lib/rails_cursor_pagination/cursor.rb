@@ -20,10 +20,10 @@ module RailsCursorPagination
       #   Model instance for which we want the cursor
       # @param order_field [Symbol]
       #   Column or virtual column of the record that the relation is ordered by
-      # @return [String]
-      def encode(record:, order_field: :id)
+      # @return [Cursor]
+      def from_record(record:, order_field: :id)
         new(id: record.id, order_field: order_field,
-            order_field_value: record[order_field]).encode
+            order_field_value: record[order_field])
       end
 
       # Decode the provided encoded cursor. Returns an instance of this
