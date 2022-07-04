@@ -401,18 +401,6 @@ Therefore, it is recommended to add an index for columns that are frequently use
 In our test case we would want to add a compound index for the `(author, id)` column combination.
 Databases like MySQL and Postgres are able to then use the leftmost part of the index, in our case `author`, by its own _or_ can use it combined with the `id` index.
 
-If you prefer to not expose the cursor from the library and instead paginate always using the ID/UUID
-as the cursor (or any other unique column) - you can achieve this by first finding the record, and 
-using the `RailsCursorPagination::Cursor` helper class to generate a valid cursor for example.
-
-```ruby
-   record = relation.find_by!(uuid: params[:uuid])
-   cursor = RailsCursorPagination::Cursor.encode(record, params[:order_by])
-   RailsCursorPagination::Paginator
-    .new(relation, order_by: :author, first: 2, after: cursor)
-    .fetch
-```
-
 ## Development
 
 Make sure you have MySQL installed on your machine and create a database with the name `rails_cursor_pagination_testing`.
