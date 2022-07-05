@@ -115,7 +115,7 @@ RSpec.describe RailsCursorPagination::Cursor do
           message = "The given cursor `#{encoded}` was decoded as " \
                     "`#{record.id}` but could not be parsed"
           expect { decoded }.to raise_error(
-            ::RailsCursorPagination::Cursor::InvalidCursorError,
+            ::RailsCursorPagination::InvalidCursorError,
             message
           )
         end
@@ -138,7 +138,7 @@ RSpec.describe RailsCursorPagination::Cursor do
                     "`[\"#{record.author}\", #{record.id}]` " \
                     'but could not be parsed'
           expect { decoded }.to raise_error(
-            ::RailsCursorPagination::Cursor::InvalidCursorError,
+            ::RailsCursorPagination::InvalidCursorError,
             message
           )
         end
@@ -168,7 +168,7 @@ RSpec.describe RailsCursorPagination::Cursor do
           message = "The given cursor `#{encoded}` " \
                     'could not be decoded'
           expect { decoded }.to raise_error(
-            ::RailsCursorPagination::Cursor::InvalidCursorError,
+            ::RailsCursorPagination::InvalidCursorError,
             message
           )
         end
@@ -183,7 +183,7 @@ RSpec.describe RailsCursorPagination::Cursor do
           message = "The given cursor `#{encoded}` " \
                     'could not be decoded'
           expect { decoded }.to raise_error(
-            ::RailsCursorPagination::Cursor::InvalidCursorError,
+            ::RailsCursorPagination::InvalidCursorError,
             message
           )
         end
@@ -209,7 +209,7 @@ RSpec.describe RailsCursorPagination::Cursor do
             message = 'The `order_field` was set to ' \
                       '`:author` but no `order_field_value` was set'
             expect { cursor }.to raise_error(
-              ::RailsCursorPagination::Cursor::ParameterError,
+              ::RailsCursorPagination::ParameterError,
               message
             )
           end
