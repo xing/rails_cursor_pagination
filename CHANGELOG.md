@@ -19,6 +19,9 @@ These are the latest changes on the project's `master` branch that have not yet 
 - Supports explicitly requesting all columns without re-including the requested column
 - Require multi-factor-authentication to publish the gem on Rubygems
 
+### Removed
+- **Breaking change:** Drop support for Ruby 2.5 (EOL 2021-03-31)
+
 ## [0.2.0] - 2021-04-19
 
 ### Changed

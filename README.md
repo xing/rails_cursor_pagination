@@ -412,6 +412,20 @@ You can also run `bin/console` for an interactive prompt that will allow you to 
 To install this gem onto your local machine, run `bundle exec rake install`.
 To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
+## Supported environments
+
+This gem should run in any project that uses:
+* Ruby
+* `ActiveRecord`
+* Postgres or MySQL
+
+We aim to support all versions that are still actively maintained and extend support until one year past the version's EOL.
+While we think it's important to stay up-to-date with versions and update as soon as an EOL is reached, we know that this is not always immediately possible.
+This way, we hope to strike a balance between being usable by most projects without forcing them to upgrade, but also keeping the supported version combinations manageable.
+
+This project is tested against different permutations of Ruby versions and DB versions, both Postgres and MySQL.
+Please check the [test automation file under `./.github/workflows/test.yml`](.github/workflows/test.yml) to see all officially supported combinations.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/xing/rails_cursor_pagination.
