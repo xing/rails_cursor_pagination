@@ -77,8 +77,8 @@ RSpec.describe RailsCursorPagination::Paginator do
         let(:relation) { :tasty_cookies }
 
         include_examples 'for a ParameterError with the right message',
-                         'The first argument must be an '\
-                         'ActiveRecord::Relation, but was the Symbol '\
+                         'The first argument must be an ' \
+                         'ActiveRecord::Relation, but was the Symbol ' \
                          '`:tasty_cookies`'
       end
 
@@ -86,8 +86,8 @@ RSpec.describe RailsCursorPagination::Paginator do
         let(:params) { super().merge(order: :happiness) }
 
         include_examples 'for a ParameterError with the right message',
-                         '`order` must be either :asc or :desc, but was'\
-                         ' `happiness`'
+                         '`order` must be either :asc or :desc, but was ' \
+                         '`happiness`'
       end
 
       context 'passing both `first` and `last`' do

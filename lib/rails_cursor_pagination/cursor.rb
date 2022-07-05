@@ -37,14 +37,14 @@ module RailsCursorPagination
         if order_field == :id
           if decoded.is_a?(Array)
             raise InvalidCursorError,
-                  "The given cursor `#{encoded_string}` was decoded as "\
+                  "The given cursor `#{encoded_string}` was decoded as " \
                   "`#{decoded}` but could not be parsed"
           end
           new(id: decoded, order_field: :id)
         else
           unless decoded.is_a?(Array) && decoded.size == 2
             raise InvalidCursorError,
-                  "The given cursor `#{encoded_string}` was decoded as "\
+                  "The given cursor `#{encoded_string}` was decoded as " \
                   "`#{decoded}` but could not be parsed"
           end
           new(id: decoded[1], order_field: order_field,
@@ -72,8 +72,8 @@ module RailsCursorPagination
 
       return if !custom_order_field? || !order_field_value.nil?
 
-      raise ParameterError, 'The `order_field` was set to '\
-                            "`#{@order_field.inspect}` but "\
+      raise ParameterError, 'The `order_field` was set to ' \
+                            "`#{@order_field.inspect}` but " \
                             'no `order_field_value` was set'
     end
 

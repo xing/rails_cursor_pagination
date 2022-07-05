@@ -102,7 +102,7 @@ module RailsCursorPagination
     def ensure_valid_params!(relation, first, after, last, before, order)
       unless relation.is_a?(ActiveRecord::Relation)
         raise ParameterError,
-              'The first argument must be an ActiveRecord::Relation, but was '\
+              'The first argument must be an ActiveRecord::Relation, but was ' \
               "the #{relation.class} `#{relation.inspect}`"
       end
       unless %i[asc desc].include?(order)
