@@ -11,14 +11,6 @@ module RailsCursorPagination
   #       .fetch
   #
   class Paginator
-    # Generic error that gets raised when invalid parameters are passed to the
-    # Paginator initializer
-    class ParameterError < Error; end
-
-    # Error that gets raised if a cursor given as `before` or `after` parameter
-    # cannot be properly parsed
-    class InvalidCursorError < ParameterError; end
-
     # Create a new instance of the `RailsCursorPagination::Paginator`
     #
     # @param relation [ActiveRecord::Relation]

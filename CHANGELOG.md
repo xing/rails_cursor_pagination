@@ -22,6 +22,9 @@ These are the latest changes on the project's `master` branch that have not yet 
 ### Removed
 - **Breaking change:** Drop support for Ruby 2.5 (EOL 2021-03-31)
 
+### Changed
+- **Breaking change:** Remove nesting of `ParameterError` and `InvalidCursorError` errors, they are now directly nested under the main gem module. So they're now `RailsCursorPagination::ParameterError` and `RailsCursorPagination::InvalidCursorError`.
+
 ## [0.2.0] - 2021-04-19
 
 ### Changed
