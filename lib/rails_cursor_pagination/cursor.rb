@@ -4,11 +4,6 @@ module RailsCursorPagination
   # Cursor class that's used to uniquely identify a record and serialize and
   # deserialize this cursor so that it can be used for pagination.
   class Cursor
-    # Generic error that gets raised when invalid parameters are passed to the
-    # Paginator initializer
-    class ParameterError < Error; end
-    class InvalidCursorError < ParameterError; end
-
     attr_reader :id, :order_field_value
 
     class << self
