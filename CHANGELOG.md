@@ -19,6 +19,9 @@ These are the latest changes on the project's `master` branch that have not yet 
 - Supports explicitly requesting all columns without re-including the requested column
 - Require multi-factor-authentication to publish the gem on Rubygems
 
+### Removed
+- **Breaking change:** Drop support for Ruby 2.5 (EOL 2021-03-31)
+
 ### Changed
 - **Breaking change:** Remove nesting of `ParameterError` and `InvalidCursorError` errors, they are now directly nested under the main gem module. So they're now `RailsCursorPagination::ParameterError` and `RailsCursorPagination::InvalidCursorError`.
 
