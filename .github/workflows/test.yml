@@ -50,7 +50,7 @@ jobs:
     strategy:
       matrix:
         ruby-version: ['2.6', '2.7', '3.0']
-        postgres-version: [13, 12]
+        postgres-version: [14, 13, 12]
 
     steps:
       - uses: actions/checkout@v2
