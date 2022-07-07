@@ -100,7 +100,7 @@ module RailsCursorPagination
     #   Optional, must be positive
     #   with `first` or `limit`
     #
-    # @raise [RailsCursorPagination::Paginator::ParameterError]
+    # @raise [RailsCursorPagination::ParameterError]
     #   If any parameter is not valid
     def ensure_valid_params_values!(relation, order, limit, first, last)
       unless relation.is_a?(ActiveRecord::Relation)
