@@ -125,6 +125,9 @@ module RailsCursorPagination
       true
     end
 
+    # Ensure that the parameters of this service are combined in a valid way.
+    # Otherwise raise a +RailsCursorPagination::ParameterError+.
+    #
     # @param limit [Integer, nil]
     #   Optional, cannot be combined with `last` or `first`
     # @param first [Integer, nil]
