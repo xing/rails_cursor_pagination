@@ -11,14 +11,14 @@ Gem::Specification.new do |spec|
   spec.summary =
     'Add cursor pagination to your ActiveRecord backed application.'
   spec.description =
-    'This library is an implementation of cursor pagination for ActiveRecord '\
-    'relations. Where a regular limit & offset pagination has issues with '\
-    'items that are being deleted from or added to the collection on previous '\
-    'pages, cursor pagination will continue to offer a stable set regardless '\
-    'of changes to the base relation.'
+    'This library is an implementation of cursor pagination for ActiveRecord ' \
+    'relations. Where a regular limit & offset pagination has issues with ' \
+    'items that are being deleted from or added to the collection on ' \
+    'previous pages, cursor pagination will continue to offer a stable set ' \
+    'regardless of changes to the base relation.'
   spec.homepage = 'https://github.com/xing/rails_cursor_pagination'
   spec.license = 'MIT'
-  spec.required_ruby_version = Gem::Requirement.new('>= 2.5.0')
+  spec.required_ruby_version = Gem::Requirement.new('>= 2.6.0')
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = spec.homepage

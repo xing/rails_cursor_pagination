@@ -68,7 +68,7 @@ RSpec.describe RailsCursorPagination::Paginator do
       shared_examples 'for a ParameterError with the right message' do |message|
         it 'raises an error with the right message' do
           expect { subject }
-            .to raise_error ::RailsCursorPagination::Paginator::ParameterError,
+            .to raise_error ::RailsCursorPagination::ParameterError,
                             message
         end
       end
@@ -77,8 +77,8 @@ RSpec.describe RailsCursorPagination::Paginator do
         let(:relation) { :tasty_cookies }
 
         include_examples 'for a ParameterError with the right message',
-                         'The first argument must be an '\
-                         'ActiveRecord::Relation, but was the Symbol '\
+                         'The first argument must be an ' \
+                         'ActiveRecord::Relation, but was the Symbol ' \
                          '`:tasty_cookies`'
       end
 
@@ -86,8 +86,8 @@ RSpec.describe RailsCursorPagination::Paginator do
         let(:params) { super().merge(order: :happiness) }
 
         include_examples 'for a ParameterError with the right message',
-                         '`order` must be either :asc or :desc, but was'\
-                         ' `happiness`'
+                         '`order` must be either :asc or :desc, but was ' \
+                         '`happiness`'
       end
 
       context 'passing both `first` and `limit`' do
@@ -599,13 +599,13 @@ RSpec.describe RailsCursorPagination::Paginator do
         context 'when not enough records are remaining after cursor' do
           include_examples 'for a working query' do
             let(:cursor_object_plain) { posts[-2] }
-            let(:expected_posts_plain) { posts[-1..-1] }
+            let(:expected_posts_plain) { posts[-1..] }
 
             let(:cursor_object_desc) { posts[1] }
             let(:expected_posts_desc) { posts[0..0].reverse }
 
             let(:cursor_object_by_author) { posts_by_author[-2] }
-            let(:expected_posts_by_author) { posts_by_author[-1..-1] }
+            let(:expected_posts_by_author) { posts_by_author[-1..] }
 
             let(:cursor_object_by_author_desc) { posts_by_author[1] }
             let(:expected_posts_by_author_desc) do
@@ -709,14 +709,14 @@ RSpec.describe RailsCursorPagination::Paginator do
             let(:expected_posts_plain) { posts[0..0] }
 
             let(:cursor_object_desc) { posts[-2] }
-            let(:expected_posts_desc) { posts[-1..-1].reverse }
+            let(:expected_posts_desc) { posts[-1..].reverse }
 
             let(:cursor_object_by_author) { posts_by_author[1] }
             let(:expected_posts_by_author) { posts_by_author[0..0] }
 
             let(:cursor_object_by_author_desc) { posts_by_author[-2] }
             let(:expected_posts_by_author_desc) do
-              posts_by_author[-1..-1].reverse
+              posts_by_author[-1..].reverse
             end
 
             let(:expected_has_next_page) { true }

@@ -148,11 +148,21 @@
 module RailsCursorPagination
   class Error < StandardError; end
 
+  # Generic error that gets raised when invalid parameters are passed to the
+  # pagination
+  class ParameterError < Error; end
+
+  # Error that gets raised if a cursor given as `before` or `after` cannot be
+  # properly parsed
+  class InvalidCursorError < ParameterError; end
+
   require_relative 'rails_cursor_pagination/version'
 
   require_relative 'rails_cursor_pagination/configuration'
 
   require_relative 'rails_cursor_pagination/paginator'
+
+  require_relative 'rails_cursor_pagination/cursor'
 
   class << self
     # Allows to configure this gem. Currently supported configuration values

@@ -15,9 +15,16 @@ These are the latest changes on the project's `master` branch that have not yet 
 --->
 
 - Adds a `limit` param to paginator that can be used instead either `first` or `last`.
+- Refactor paginator cursor interactions into exposed `RailsCursorPaginator::Cursor` class
 - Adds a `max_page_size` to the configuration, allowing to set a global limit to the page size (non overridable): Default `nil`
 - Supports explicitly requesting all columns without re-including the requested column
 - Require multi-factor-authentication to publish the gem on Rubygems
+
+### Removed
+- **Breaking change:** Drop support for Ruby 2.5 (EOL 2021-03-31)
+
+### Changed
+- **Breaking change:** Remove nesting of `ParameterError` and `InvalidCursorError` errors, they are now directly nested under the main gem module. So they're now `RailsCursorPagination::ParameterError` and `RailsCursorPagination::InvalidCursorError`.
 
 ## [0.2.0] - 2021-04-19
 
