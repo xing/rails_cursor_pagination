@@ -38,14 +38,15 @@ module RailsCursorPagination
     # @param order [Symbol, nil]
     #   Ordering to apply, either `:asc` or `:desc`. Defaults to `:asc`.
     #
-    # @raise [RailsCursorPagination::Paginator::ParameterError]
+    # @raise [RailsCursorPagination::ParameterError]
     #   If any parameter is not valid
     def initialize(relation, limit: nil, first: nil, after: nil, last: nil,
                    before: nil, order_by: nil, order: nil)
       order_by ||= :id
       order ||= :asc
 
-      ensure_valid_params!(relation, limit, first, after, last, before, order)
+      ensure_valid_params_values!(relation, order, limit, first, last)
+      ensure_valid_params_combinations!(first, last, limit, before, after)
 
       @order_field = order_by
       @order_direction = order
@@ -84,32 +85,24 @@ module RailsCursorPagination
 
     private
 
-    # rubocop:disable Metrics/AbcSize
-    # rubocop:disable Metrics/CyclomaticComplexity
-    # rubocop:disable Metrics/PerceivedComplexity
-    # rubocop:disable Metrics/MethodLength
-    # Ensure that the parameters of this service are valid. Otherwise raise
-    # a `RailsCursorPagination::Paginator::ParameterError`.
+    # Ensure that the parameters of this service have valid values, otherwise
+    # raise a `RailsCursorPagination::ParameterError`.
     #
     # @param relation [ActiveRecord::Relation]
     #   Relation that will be paginated.
-    # @param limit [Integer, nil]
-    #   Optional, must be positive, cannot be combined with `last` or `first`
-    # @param first [Integer, nil]
-    #   Optional, must be positive, cannot be combined with `last` or `limit`
-    # @param after [String, nil]
-    #   Optional, cannot be combined with `before`
-    # @param last [Integer, nil]
-    #   Optional, must be positive, requires `before`, cannot be combined
-    #   with `first` or `limit`
-    # @param before [String, nil]
-    #   Optional, cannot be combined with `after`
     # @param order [Symbol]
-    #   Optional, must be :asc or :desc
+    #   Must be :asc or :desc
+    # @param limit [Integer, nil]
+    #   Optional, must be positive
+    # @param first [Integer, nil]
+    #   Optional, must be positive
+    # @param last [Integer, nil]
+    #   Optional, must be positive
+    #   with `first` or `limit`
     #
     # @raise [RailsCursorPagination::Paginator::ParameterError]
     #   If any parameter is not valid
-    def ensure_valid_params!(relation, limit, first, after, last, before, order)
+    def ensure_valid_params_values!(relation, order, limit, first, last)
       unless relation.is_a?(ActiveRecord::Relation)
         raise ParameterError,
               'The first argument must be an ActiveRecord::Relation, but was ' \
@@ -119,6 +112,31 @@ module RailsCursorPagination
         raise ParameterError,
               "`order` must be either :asc or :desc, but was `#{order}`"
       end
+      if first.present? && first.negative?
+        raise ParameterError, "`first` cannot be negative, but was `#{first}`"
+      end
+      if last.present? && last.negative?
+        raise ParameterError, "`last` cannot be negative, but was `#{last}`"
+      end
+      if limit.present? && limit.negative?
+        raise ParameterError, "`limit` cannot be negative, but was `#{limit}`"
+      end
+
+      true
+    end
+
+    # @param limit [Integer, nil]
+    #   Optional, cannot be combined with `last` or `first`
+    # @param first [Integer, nil]
+    #   Optional, cannot be combined with `last` or `limit`
+    # @param after [String, nil]
+    #   Optional, cannot be combined with `before`
+    # @param last [Integer, nil]
+    #   Optional, requires `before`, cannot be combined
+    #   with `first` or `limit`
+    # @param before [String, nil]
+    #   Optional, cannot be combined with `after`
+    def ensure_valid_params_combinations!(first, last, limit, before, after)
       if first.present? && last.present?
         raise ParameterError, '`first` cannot be combined with `last`'
       end
@@ -134,22 +152,9 @@ module RailsCursorPagination
       if last.present? && before.blank?
         raise ParameterError, '`last` must be combined with `before`'
       end
-      if first.present? && first.negative?
-        raise ParameterError, "`first` cannot be negative, but was `#{first}`"
-      end
-      if last.present? && last.negative?
-        raise ParameterError, "`last` cannot be negative, but was `#{last}`"
-      end
-      if limit.present? && limit.negative?
-        raise ParameterError, "`limit` cannot be negative, but was `#{limit}`"
-      end
 
       true
     end
-    # rubocop:enable Metrics/AbcSize
-    # rubocop:enable Metrics/CyclomaticComplexity
-    # rubocop:enable Metrics/PerceivedComplexity
-    # rubocop:enable Metrics/MethodLength
 
     # Get meta information about the current page
     #
