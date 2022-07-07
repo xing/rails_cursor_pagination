@@ -139,6 +139,9 @@ module RailsCursorPagination
     #   with `first` or `limit`
     # @param before [String, nil]
     #   Optional, cannot be combined with `after`
+    #
+    # @raise [RailsCursorPagination::ParameterError]
+    #   If parameters are combined in an invalid way
     def ensure_valid_params_combinations!(first, last, limit, before, after)
       if first.present? && last.present?
         raise ParameterError, '`first` cannot be combined with `last`'
