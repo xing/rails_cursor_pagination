@@ -120,6 +120,21 @@ RailsCursorPagination::Paginator
   .fetch
 ```
 
+Alternatively, you can use the `limit` column with either `after` or `before`.
+This will behave like either `first` or `last` respectively and fetch X records.
+
+```ruby
+RailsCursorPagination::Paginator
+  .new(posts, limit: 2, after: 'MTA=')
+  .fetch
+```
+
+```ruby
+RailsCursorPagination::Paginator
+  .new(posts, limit: 2, before: 'MTA=')
+  .fetch
+```
+
 ### Ordering
 
 As said, this gem ignores any previous ordering added to the passed relation.

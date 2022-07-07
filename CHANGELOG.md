@@ -14,6 +14,7 @@ These are the latest changes on the project's `master` branch that have not yet 
   Follow the same format as previous releases by categorizing your feature into "Added", "Changed", "Deprecated", "Removed", "Fixed", or "Security".
 --->
 
+- Adds a `limit` param to paginator that can be used instead either `first` or `last`.
 - Refactor paginator cursor interactions into exposed `RailsCursorPaginator::Cursor` class
 - Adds a `max_page_size` to the configuration, allowing to set a global limit to the page size (non overridable): Default `nil`
 - Supports explicitly requesting all columns without re-including the requested column
