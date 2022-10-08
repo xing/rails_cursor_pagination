@@ -51,6 +51,45 @@ RSpec.describe RailsCursorPagination::Cursor do
         expect(decoded.order_field_value).to eq record.author
       end
     end
+
+    context 'when ordering by created_at' do
+      before { record.update!(created_at: '2022-10-04 16:58:43 +0200') }
+
+      after do
+        ActiveRecord::Base.time_zone_aware_attributes = true
+        ActiveRecord::Base.default_timezone == :utc
+      end
+
+      subject(:encoded) do
+        described_class.from_record(record: record,
+                                    order_field: :created_at).encode
+      end
+
+      let(:decoded_time) do
+        decoded = described_class.decode(encoded_string: encoded,
+                                         order_field: :created_at)
+        Time.parse(decoded.order_field_value)
+      end
+
+      it 'can be decoded back to the originally encoded value' do
+        expect(decoded_time).to eq record.created_at
+        expect(decoded_time).to be_utc
+      end
+
+      it 'respects the time_zone_aware_attributes setting' do
+        ActiveRecord::Base.time_zone_aware_attributes = false
+
+        expect(decoded_time).to eq record.created_at
+        expect(decoded_time).not_to be_utc
+      end
+
+      it 'respects the default_timezone setting' do
+        ActiveRecord::Base.default_timezone = :local
+
+        expect(decoded_time).to eq record.created_at
+        expect(decoded_time).not_to be_utc
+      end
+    end
   end
 
   describe '.from_record' do

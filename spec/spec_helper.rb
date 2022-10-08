@@ -22,6 +22,10 @@ RSpec.configure do |config|
   ActiveRecord::Base.logger = Logger.new(ENV['VERBOSE'] ? $stdout : nil)
   ActiveRecord::Migration.verbose = ENV.fetch('VERBOSE', nil)
 
+  # Configure time_zone like it would be in rails applications
+  ActiveRecord::Base.time_zone_aware_attributes = true
+  Time.zone = 'Berlin'
+
   ActiveRecord::Base.establish_connection(
     adapter: ENV.fetch('DB_ADAPTER', 'mysql2'),
     database: 'rails_cursor_pagination_testing',
@@ -35,6 +39,7 @@ RSpec.configure do |config|
   ActiveRecord::Migration.create_table :posts do |t|
     t.string :author
     t.string :content
+    t.datetime :created_at
   end
 
   config.before(:each) { Post.delete_all }

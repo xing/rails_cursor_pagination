@@ -68,7 +68,7 @@ module RailsCursorPagination
     def initialize(id:, order_field: :id, order_field_value: nil)
       @id = id
       @order_field = order_field
-      @order_field_value = order_field_value
+      @order_field_value = normalized_order_field_value(order_field_value)
 
       return if !custom_order_field? || !order_field_value.nil?
 
@@ -103,6 +103,17 @@ module RailsCursorPagination
     # @return [Boolean]
     def custom_order_field?
       @order_field != :id
+    end
+
+    # Returns the value given, but transforms datetime values to UTC if
+    # applicable
+    #
+    # @return [Object]
+    def normalized_order_field_value(value)
+      return value unless ActiveRecord::Base.time_zone_aware_attributes
+      return value unless ActiveRecord::Base.default_timezone == :utc
+
+      value.respond_to?(:utc) ? value.utc : value
     end
   end
 end

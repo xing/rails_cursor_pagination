@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 These are the latest changes on the project's `master` branch that have not yet been released.
 
+### Fixed
+- Use UTC when encoding datetime values into cursor, therefore playing nicely with rails' default behaviour of storing UTC in the database.
+
 <!---
   If you submit a pull request for this gem, please add a summary of your changes here.
   This will ensure that they're also mentioned in the next release description.
@@ -34,7 +37,7 @@ These are the latest changes on the project's `master` branch that have not yet 
 ### Changed
 - **Breaking change:** The way records are retrieved from a given cursor has been changed to no longer use `CONCAT` but instead simply use a compound `WHERE` clause in case of a custom order and having both the custom field as well as the `id` field in the `ORDER BY` query. This is a breaking change since it now changes the internal order of how records with the same value of the `order_by` field are returned.
 - Remove `ORDER BY` clause from `COUNT` queries
-         
+
 ### Fixed
 - Only trigger one SQL query to load the records from the database and use it to determine if there was a previous / is a next page
 - Memoize the `Paginator#page` method which is invoked multiple times to prevent it from mapping over the `records` again and again and rebuilding all cursors
@@ -56,7 +59,7 @@ These are the latest changes on the project's `master` branch that have not yet 
 ### Fixed
 - Pagination for relations in which a custom `SELECT` does not contain cursor-relevant fields like `:id` or the field specified via `order_by`
 
-## [0.1.1] - 2021-01-21 
+## [0.1.1] - 2021-01-21
 
 ### Added
 - Add support for handling `nil` for `order` and `order_by` values as if they were not passed
