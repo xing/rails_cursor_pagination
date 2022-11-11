@@ -386,7 +386,7 @@ module RailsCursorPagination
     # @return [ActiveRecord::Relation]
     def relation_with_cursor_fields
       return @relation if @relation.select_values.blank? ||
-                          @relation.select_values.include?('*')
+                          @relation.select_values.any? {|value| value.end_with?('*') }
 
       relation = @relation
 
@@ -394,7 +394,8 @@ module RailsCursorPagination
         relation = relation.select(:id)
       end
 
-      if custom_order_field? && !@relation.select_values.include?(@order_field)
+      if custom_order_field? && 
+         !@relation.select_values.any? {|value| value.end_with?(@order_field)}
         relation = relation.select(@order_field)
       end
 
