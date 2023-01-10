@@ -1,30 +1,29 @@
 PATH
   remote: .
   specs:
-    rails_cursor_pagination (0.3.0)
+    rails_cursor_pagination (0.3.1)
       activerecord (>= 5.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (6.1.6)
-      activesupport (= 6.1.6)
-    activerecord (6.1.6)
-      activemodel (= 6.1.6)
-      activesupport (= 6.1.6)
-    activesupport (6.1.6)
+    activemodel (7.0.4)
+      activesupport (= 7.0.4)
+    activerecord (7.0.4)
+      activemodel (= 7.0.4)
+      activesupport (= 7.0.4)
+    activesupport (7.0.4)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
-      zeitwerk (~> 2.3)
     ast (2.4.2)
     concurrent-ruby (1.1.10)
     diff-lcs (1.5.0)
-    i18n (1.10.0)
+    i18n (1.12.0)
       concurrent-ruby (~> 1.0)
     json (2.6.2)
-    minitest (5.15.0)
+    minitest (5.17.0)
     mysql2 (0.5.4)
     parallel (1.22.1)
     parser (3.1.2.0)
@@ -60,10 +59,9 @@ GEM
     rubocop-ast (1.18.0)
       parser (>= 3.1.1.0)
     ruby-progressbar (1.11.0)
-    tzinfo (2.0.4)
+    tzinfo (2.0.5)
       concurrent-ruby (~> 1.0)
     unicode-display_width (2.2.0)
-    zeitwerk (2.5.4)
 
 PLATFORMS
   ruby
