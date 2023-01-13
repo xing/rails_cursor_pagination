@@ -3,6 +3,7 @@
 require 'bundler/setup'
 require 'rails_cursor_pagination'
 require 'active_record'
+require 'base64'
 
 # This dummy ActiveRecord class is used for testing
 class Post < ActiveRecord::Base; end
@@ -23,18 +24,19 @@ RSpec.configure do |config|
   ActiveRecord::Migration.verbose = ENV.fetch('VERBOSE', nil)
 
   ActiveRecord::Base.establish_connection(
-    adapter: ENV.fetch('DB_ADAPTER', 'mysql2'),
+    adapter: ENV.fetch('DB_ADAPTER', 'postgresql'),
     database: 'rails_cursor_pagination_testing',
     host: ENV.fetch('DB_HOST', nil),
     username: ENV.fetch('DB_USER', nil)
   )
-
+  
   # Ensure we have an empty `posts` table with the right format
   ActiveRecord::Migration.drop_table :posts, if_exists: true
 
   ActiveRecord::Migration.create_table :posts do |t|
     t.string :author
     t.string :content
+    t.timestamps
   end
 
   config.before(:each) { Post.delete_all }

@@ -14,6 +14,11 @@ These are the latest changes on the project's `master` branch that have not yet 
   Follow the same format as previous releases by categorizing your feature into "Added", "Changed", "Deprecated", "Removed", "Fixed", or "Security".
 --->
 
+## [0.3.1] - 2023-01-13
+
+### Fixed
+- Ensure DateTime order_by fields will have expected paginated results by honoring of timestamps down to nanosecond on comparison.
+
 ## [0.3.0] - 2022-07-08
 
 ### Added
