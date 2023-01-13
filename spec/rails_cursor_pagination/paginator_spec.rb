@@ -182,34 +182,10 @@ RSpec.describe RailsCursorPagination::Paginator do
         post_13
       ]
     end
-    let(:posts_by_author) do
-      # Posts are first ordered by the author's name and then, in case of two
-      # posts having the same author, by ID
-      [
-        # All posts by "Jane"
-        post_2,
-        post_3,
-        post_5,
-        post_7,
-        post_13,
-        # All posts by "Jess"
-        post_9,
-        post_10,
-        # All posts by "John"
-        post_1,
-        post_4,
-        post_6,
-        post_8,
-        post_11,
-        post_12
-      ]
-    end
 
     let(:cursor_object) { nil }
     let(:cursor_object_plain) { nil }
     let(:cursor_object_desc) { nil }
-    let(:cursor_object_by_author) { nil }
-    let(:cursor_object_by_author_desc) { nil }
     let(:query_cursor_base) { cursor_object&.id }
     let(:query_cursor) { Base64.strict_encode64(query_cursor_base.to_json) }
     let(:order_by_column) { nil }
@@ -394,377 +370,806 @@ RSpec.describe RailsCursorPagination::Paginator do
       it_behaves_like 'a query that returns no data when relation is empty'
     end
 
-    context 'when neither first/last/limit nor before/after are passed' do
-      include_examples 'for a working query' do
-        let(:expected_posts_plain) { posts.first(10) }
-        let(:expected_posts_desc) { posts.reverse.first(10) }
-
-        let(:expected_posts_by_author) { posts_by_author.first(10) }
-        let(:expected_posts_by_author_desc) do
-          posts_by_author.reverse.first(10)
-        end
-
-        let(:expected_has_next_page) { true }
-        let(:expected_has_previous_page) { false }
+    context 'for non-timestamp custom_order_field - author' do
+      let(:posts_by_author) do
+        # Posts are first ordered by the author's name and then, in case of two
+        # posts having the same author, by ID
+        [
+          # All posts by "Jane"
+          post_2,
+          post_3,
+          post_5,
+          post_7,
+          post_13,
+          # All posts by "Jess"
+          post_9,
+          post_10,
+          # All posts by "John"
+          post_1,
+          post_4,
+          post_6,
+          post_8,
+          post_11,
+          post_12
+        ]
       end
+  
+      let(:cursor_object_by_author) { nil }
+      let(:cursor_object_by_author_desc) { nil }
 
-      context 'when a different default_page_size has been set' do
-        let(:custom_page_size) { 2 }
-
-        before do
-          RailsCursorPagination.configure do |config|
-            config.default_page_size = custom_page_size
-          end
-        end
-
-        after { RailsCursorPagination.configure(&:reset!) }
-
+      context 'when neither first/last/limit nor before/after are passed' do
         include_examples 'for a working query' do
-          let(:expected_posts_plain) { posts.first(custom_page_size) }
-          let(:expected_posts_desc) { posts.reverse.first(custom_page_size) }
-
-          let(:expected_posts_by_author) do
-            posts_by_author.first(custom_page_size)
-          end
+          let(:expected_posts_plain) { posts.first(10) }
+          let(:expected_posts_desc) { posts.reverse.first(10) }
+  
+          let(:expected_posts_by_author) { posts_by_author.first(10) }
           let(:expected_posts_by_author_desc) do
-            posts_by_author.reverse.first(custom_page_size)
+            posts_by_author.reverse.first(10)
           end
-
+  
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { false }
         end
-      end
-
-      context 'when a max_page_size has been set' do
-        let(:max_page_size) { 2 }
-
-        before do
-          RailsCursorPagination.configure do |config|
-            config.max_page_size = max_page_size
+  
+        context 'when a different default_page_size has been set' do
+          let(:custom_page_size) { 2 }
+  
+          before do
+            RailsCursorPagination.configure do |config|
+              config.default_page_size = custom_page_size
+            end
+          end
+  
+          after { RailsCursorPagination.configure(&:reset!) }
+  
+          include_examples 'for a working query' do
+            let(:expected_posts_plain) { posts.first(custom_page_size) }
+            let(:expected_posts_desc) { posts.reverse.first(custom_page_size) }
+  
+            let(:expected_posts_by_author) do
+              posts_by_author.first(custom_page_size)
+            end
+            let(:expected_posts_by_author_desc) do
+              posts_by_author.reverse.first(custom_page_size)
+            end
+  
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { false }
           end
         end
-
-        after { RailsCursorPagination.configure(&:reset!) }
-
-        include_examples 'for a working query' do
-          let(:expected_posts_plain) { posts.first(max_page_size) }
-          let(:expected_posts_desc) { posts.reverse.first(max_page_size) }
-
-          let(:expected_posts_by_author) do
-            posts_by_author.first(max_page_size)
+  
+        context 'when a max_page_size has been set' do
+          let(:max_page_size) { 2 }
+  
+          before do
+            RailsCursorPagination.configure do |config|
+              config.max_page_size = max_page_size
+            end
           end
-          let(:expected_posts_by_author_desc) do
-            posts_by_author.reverse.first(max_page_size)
-          end
-
-          let(:expected_has_next_page) { true }
-          let(:expected_has_previous_page) { false }
-        end
-
-        context 'when attempting to go over the limit' do
-          let(:params) { { first: 5 } }
-
+  
+          after { RailsCursorPagination.configure(&:reset!) }
+  
           include_examples 'for a working query' do
             let(:expected_posts_plain) { posts.first(max_page_size) }
             let(:expected_posts_desc) { posts.reverse.first(max_page_size) }
-
+  
             let(:expected_posts_by_author) do
               posts_by_author.first(max_page_size)
             end
             let(:expected_posts_by_author_desc) do
               posts_by_author.reverse.first(max_page_size)
             end
-
+  
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { false }
+          end
+  
+          context 'when attempting to go over the limit' do
+            let(:params) { { first: 5 } }
+  
+            include_examples 'for a working query' do
+              let(:expected_posts_plain) { posts.first(max_page_size) }
+              let(:expected_posts_desc) { posts.reverse.first(max_page_size) }
+  
+              let(:expected_posts_by_author) do
+                posts_by_author.first(max_page_size)
+              end
+              let(:expected_posts_by_author_desc) do
+                posts_by_author.reverse.first(max_page_size)
+              end
+  
+              let(:expected_has_next_page) { true }
+              let(:expected_has_previous_page) { false }
+            end
+          end
+        end
+  
+        context 'when `order` and `order_by` are explicitly set to `nil`' do
+          let(:params) { super().merge(order: nil, order_by: nil) }
+  
+          it_behaves_like 'a well working query that also supports SELECT' do
+            let(:expected_posts) { posts.first(10) }
+            let(:expected_cursor) { ->(post) { post.id } }
+  
             let(:expected_has_next_page) { true }
             let(:expected_has_previous_page) { false }
           end
         end
       end
-
-      context 'when `order` and `order_by` are explicitly set to `nil`' do
-        let(:params) { super().merge(order: nil, order_by: nil) }
-
-        it_behaves_like 'a well working query that also supports SELECT' do
-          let(:expected_posts) { posts.first(10) }
-          let(:expected_cursor) { ->(post) { post.id } }
-
+  
+      context 'when only passing first' do
+        let(:params) { { first: 2 } }
+  
+        include_examples 'for a working query' do
+          let(:expected_posts_plain) { posts.first(2) }
+          let(:expected_posts_desc) { posts.reverse.first(2) }
+  
+          let(:expected_posts_by_author) { posts_by_author.first(2) }
+          let(:expected_posts_by_author_desc) { posts_by_author.reverse.first(2) }
+  
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { false }
         end
-      end
-    end
-
-    context 'when only passing first' do
-      let(:params) { { first: 2 } }
-
-      include_examples 'for a working query' do
-        let(:expected_posts_plain) { posts.first(2) }
-        let(:expected_posts_desc) { posts.reverse.first(2) }
-
-        let(:expected_posts_by_author) { posts_by_author.first(2) }
-        let(:expected_posts_by_author_desc) { posts_by_author.reverse.first(2) }
-
-        let(:expected_has_next_page) { true }
-        let(:expected_has_previous_page) { false }
-      end
-
-      context 'when there are less records than requested' do
-        let(:params) { { first: posts.size + 1 } }
-
-        include_examples 'for a working query' do
-          let(:expected_posts_plain) { posts }
-          let(:expected_posts_desc) { posts.reverse }
-
-          let(:expected_posts_by_author) { posts_by_author }
-          let(:expected_posts_by_author_desc) { posts_by_author.reverse }
-
-          let(:expected_has_next_page) { false }
-          let(:expected_has_previous_page) { false }
-        end
-      end
-    end
-
-    context 'when only passing limit' do
-      let(:params) { { limit: 2 } }
-
-      include_examples 'for a working query' do
-        let(:expected_posts_plain) { posts.first(2) }
-        let(:expected_posts_desc) { posts.reverse.first(2) }
-
-        let(:expected_posts_by_author) { posts_by_author.first(2) }
-        let(:expected_posts_by_author_desc) { posts_by_author.reverse.first(2) }
-
-        let(:expected_has_next_page) { true }
-        let(:expected_has_previous_page) { false }
-      end
-
-      context 'when there are less records than requested' do
-        let(:params) { { first: posts.size + 1 } }
-
-        include_examples 'for a working query' do
-          let(:expected_posts_plain) { posts }
-          let(:expected_posts_desc) { posts.reverse }
-
-          let(:expected_posts_by_author) { posts_by_author }
-          let(:expected_posts_by_author_desc) { posts_by_author.reverse }
-
-          let(:expected_has_next_page) { false }
-          let(:expected_has_previous_page) { false }
-        end
-      end
-    end
-
-    context 'when passing `after`' do
-      let(:params) { { after: query_cursor } }
-
-      include_examples 'for a working query' do
-        let(:cursor_object_plain) { posts[0] }
-        let(:expected_posts_plain) { posts[1..10] }
-
-        let(:cursor_object_desc) { posts[-1] }
-        let(:expected_posts_desc) { posts[-11..-2].reverse }
-
-        let(:cursor_object_by_author) { posts_by_author[0] }
-        let(:expected_posts_by_author) { posts_by_author[1..10] }
-
-        let(:cursor_object_by_author_desc) { posts_by_author[-1] }
-        let(:expected_posts_by_author_desc) { posts_by_author[-11..-2].reverse }
-
-        let(:expected_has_next_page) { true }
-        let(:expected_has_previous_page) { true }
-      end
-
-      context 'and `first`' do
-        let(:params) { super().merge(first: 2) }
-
-        include_examples 'for a working query' do
-          let(:cursor_object_plain) { posts[2] }
-          let(:expected_posts_plain) { posts[3..4] }
-
-          let(:cursor_object_desc) { posts[-2] }
-          let(:expected_posts_desc) { posts[-4..-3].reverse }
-
-          let(:cursor_object_by_author) { posts_by_author[2] }
-          let(:expected_posts_by_author) { posts_by_author[3..4] }
-
-          let(:cursor_object_by_author_desc) { posts_by_author[-2] }
-          let(:expected_posts_by_author_desc) do
-            posts_by_author[-4..-3].reverse
-          end
-
-          let(:expected_has_next_page) { true }
-          let(:expected_has_previous_page) { true }
-        end
-
-        context 'when not enough records are remaining after cursor' do
+  
+        context 'when there are less records than requested' do
+          let(:params) { { first: posts.size + 1 } }
+  
           include_examples 'for a working query' do
-            let(:cursor_object_plain) { posts[-2] }
-            let(:expected_posts_plain) { posts[-1..] }
-
-            let(:cursor_object_desc) { posts[1] }
-            let(:expected_posts_desc) { posts[0..0].reverse }
-
-            let(:cursor_object_by_author) { posts_by_author[-2] }
-            let(:expected_posts_by_author) { posts_by_author[-1..] }
-
-            let(:cursor_object_by_author_desc) { posts_by_author[1] }
-            let(:expected_posts_by_author_desc) do
-              posts_by_author[0..0].reverse
-            end
-
+            let(:expected_posts_plain) { posts }
+            let(:expected_posts_desc) { posts.reverse }
+  
+            let(:expected_posts_by_author) { posts_by_author }
+            let(:expected_posts_by_author_desc) { posts_by_author.reverse }
+  
             let(:expected_has_next_page) { false }
-            let(:expected_has_previous_page) { true }
+            let(:expected_has_previous_page) { false }
           end
         end
       end
-
-      context 'and `limit`' do
-        let(:params) { super().merge(limit: 2) }
-
+  
+      context 'when only passing limit' do
+        let(:params) { { limit: 2 } }
+  
         include_examples 'for a working query' do
-          let(:cursor_object_plain) { posts[2] }
-          let(:expected_posts_plain) { posts[3..4] }
-
-          let(:cursor_object_desc) { posts[-2] }
-          let(:expected_posts_desc) { posts[-4..-3].reverse }
-
-          let(:cursor_object_by_author) { posts_by_author[2] }
-          let(:expected_posts_by_author) { posts_by_author[3..4] }
-
-          let(:cursor_object_by_author_desc) { posts_by_author[-2] }
-          let(:expected_posts_by_author_desc) do
-            posts_by_author[-4..-3].reverse
-          end
-
+          let(:expected_posts_plain) { posts.first(2) }
+          let(:expected_posts_desc) { posts.reverse.first(2) }
+  
+          let(:expected_posts_by_author) { posts_by_author.first(2) }
+          let(:expected_posts_by_author_desc) { posts_by_author.reverse.first(2) }
+  
           let(:expected_has_next_page) { true }
-          let(:expected_has_previous_page) { true }
+          let(:expected_has_previous_page) { false }
         end
-
-        context 'when not enough records are remaining after cursor' do
+  
+        context 'when there are less records than requested' do
+          let(:params) { { first: posts.size + 1 } }
+  
           include_examples 'for a working query' do
-            let(:cursor_object_plain) { posts[-2] }
-            let(:expected_posts_plain) { posts[-1..] }
-
-            let(:cursor_object_desc) { posts[1] }
-            let(:expected_posts_desc) { posts[0..0].reverse }
-
-            let(:cursor_object_by_author) { posts_by_author[-2] }
-            let(:expected_posts_by_author) { posts_by_author[-1..] }
-
-            let(:cursor_object_by_author_desc) { posts_by_author[1] }
-            let(:expected_posts_by_author_desc) do
-              posts_by_author[0..0].reverse
-            end
-
+            let(:expected_posts_plain) { posts }
+            let(:expected_posts_desc) { posts.reverse }
+  
+            let(:expected_posts_by_author) { posts_by_author }
+            let(:expected_posts_by_author_desc) { posts_by_author.reverse }
+  
             let(:expected_has_next_page) { false }
-            let(:expected_has_previous_page) { true }
+            let(:expected_has_previous_page) { false }
           end
         end
       end
-    end
-
-    context 'when passing `before`' do
-      let(:params) { { before: query_cursor } }
-
-      include_examples 'for a working query' do
-        let(:cursor_object_plain) { posts[-1] }
-        let(:expected_posts_plain) { posts[-11..-2] }
-
-        let(:cursor_object_desc) { posts[0] }
-        let(:expected_posts_desc) { posts[1..10].reverse }
-
-        let(:cursor_object_by_author) { posts_by_author[-1] }
-        let(:expected_posts_by_author) { posts_by_author[-11..-2] }
-
-        let(:cursor_object_by_author_desc) { posts_by_author[0] }
-        let(:expected_posts_by_author_desc) { posts_by_author[1..10].reverse }
-
-        let(:expected_has_next_page) { true }
-        let(:expected_has_previous_page) { true }
-      end
-
-      context 'and `last`' do
-        let(:params) { super().merge(last: 2) }
-
+  
+      context 'when passing `after`' do
+        let(:params) { { after: query_cursor } }
+  
         include_examples 'for a working query' do
-          let(:cursor_object_plain) { posts[-1] }
-          let(:expected_posts_plain) { posts[-3..-2] }
-
-          let(:cursor_object_desc) { posts[2] }
-          let(:expected_posts_desc) { posts[3..4].reverse }
-
-          let(:cursor_object_by_author) { posts_by_author[-1] }
-          let(:expected_posts_by_author) { posts_by_author[-3..-2] }
-
-          let(:cursor_object_by_author_desc) { posts_by_author[2] }
-          let(:expected_posts_by_author_desc) { posts_by_author[3..4].reverse }
-
+          let(:cursor_object_plain) { posts[0] }
+          let(:expected_posts_plain) { posts[1..10] }
+  
+          let(:cursor_object_desc) { posts[-1] }
+          let(:expected_posts_desc) { posts[-11..-2].reverse }
+  
+          let(:cursor_object_by_author) { posts_by_author[0] }
+          let(:expected_posts_by_author) { posts_by_author[1..10] }
+  
+          let(:cursor_object_by_author_desc) { posts_by_author[-1] }
+          let(:expected_posts_by_author_desc) { posts_by_author[-11..-2].reverse }
+  
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { true }
         end
-
-        context 'when not enough records are remaining before cursor' do
+  
+        context 'and `first`' do
+          let(:params) { super().merge(first: 2) }
+  
           include_examples 'for a working query' do
-            let(:cursor_object_plain) { posts[1] }
-            let(:expected_posts_plain) { posts[0..0] }
-
+            let(:cursor_object_plain) { posts[2] }
+            let(:expected_posts_plain) { posts[3..4] }
+  
             let(:cursor_object_desc) { posts[-2] }
-            let(:expected_posts_desc) { posts[-1..].reverse }
-
-            let(:cursor_object_by_author) { posts_by_author[1] }
-            let(:expected_posts_by_author) { posts_by_author[0..0] }
-
+            let(:expected_posts_desc) { posts[-4..-3].reverse }
+  
+            let(:cursor_object_by_author) { posts_by_author[2] }
+            let(:expected_posts_by_author) { posts_by_author[3..4] }
+  
             let(:cursor_object_by_author_desc) { posts_by_author[-2] }
             let(:expected_posts_by_author_desc) do
-              posts_by_author[-1..].reverse
+              posts_by_author[-4..-3].reverse
             end
+  
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { true }
+          end
+  
+          context 'when not enough records are remaining after cursor' do
+            include_examples 'for a working query' do
+              let(:cursor_object_plain) { posts[-2] }
+              let(:expected_posts_plain) { posts[-1..] }
+  
+              let(:cursor_object_desc) { posts[1] }
+              let(:expected_posts_desc) { posts[0..0].reverse }
+  
+              let(:cursor_object_by_author) { posts_by_author[-2] }
+              let(:expected_posts_by_author) { posts_by_author[-1..] }
+  
+              let(:cursor_object_by_author_desc) { posts_by_author[1] }
+              let(:expected_posts_by_author_desc) do
+                posts_by_author[0..0].reverse
+              end
+  
+              let(:expected_has_next_page) { false }
+              let(:expected_has_previous_page) { true }
+            end
+          end
+        end
+  
+        context 'and `limit`' do
+          let(:params) { super().merge(limit: 2) }
+  
+          include_examples 'for a working query' do
+            let(:cursor_object_plain) { posts[2] }
+            let(:expected_posts_plain) { posts[3..4] }
+  
+            let(:cursor_object_desc) { posts[-2] }
+            let(:expected_posts_desc) { posts[-4..-3].reverse }
+  
+            let(:cursor_object_by_author) { posts_by_author[2] }
+            let(:expected_posts_by_author) { posts_by_author[3..4] }
+  
+            let(:cursor_object_by_author_desc) { posts_by_author[-2] }
+            let(:expected_posts_by_author_desc) do
+              posts_by_author[-4..-3].reverse
+            end
+  
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { true }
+          end
+  
+          context 'when not enough records are remaining after cursor' do
+            include_examples 'for a working query' do
+              let(:cursor_object_plain) { posts[-2] }
+              let(:expected_posts_plain) { posts[-1..] }
+  
+              let(:cursor_object_desc) { posts[1] }
+              let(:expected_posts_desc) { posts[0..0].reverse }
+  
+              let(:cursor_object_by_author) { posts_by_author[-2] }
+              let(:expected_posts_by_author) { posts_by_author[-1..] }
+  
+              let(:cursor_object_by_author_desc) { posts_by_author[1] }
+              let(:expected_posts_by_author_desc) do
+                posts_by_author[0..0].reverse
+              end
+  
+              let(:expected_has_next_page) { false }
+              let(:expected_has_previous_page) { true }
+            end
+          end
+        end
+      end
+  
+      context 'when passing `before`' do
+        let(:params) { { before: query_cursor } }
+  
+        include_examples 'for a working query' do
+          let(:cursor_object_plain) { posts[-1] }
+          let(:expected_posts_plain) { posts[-11..-2] }
+  
+          let(:cursor_object_desc) { posts[0] }
+          let(:expected_posts_desc) { posts[1..10].reverse }
+  
+          let(:cursor_object_by_author) { posts_by_author[-1] }
+          let(:expected_posts_by_author) { posts_by_author[-11..-2] }
+  
+          let(:cursor_object_by_author_desc) { posts_by_author[0] }
+          let(:expected_posts_by_author_desc) { posts_by_author[1..10].reverse }
+  
+          let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { true }
+        end
+  
+        context 'and `last`' do
+          let(:params) { super().merge(last: 2) }
+  
+          include_examples 'for a working query' do
+            let(:cursor_object_plain) { posts[-1] }
+            let(:expected_posts_plain) { posts[-3..-2] }
+  
+            let(:cursor_object_desc) { posts[2] }
+            let(:expected_posts_desc) { posts[3..4].reverse }
+  
+            let(:cursor_object_by_author) { posts_by_author[-1] }
+            let(:expected_posts_by_author) { posts_by_author[-3..-2] }
+  
+            let(:cursor_object_by_author_desc) { posts_by_author[2] }
+            let(:expected_posts_by_author_desc) { posts_by_author[3..4].reverse }
+  
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { true }
+          end
+  
+          context 'when not enough records are remaining before cursor' do
+            include_examples 'for a working query' do
+              let(:cursor_object_plain) { posts[1] }
+              let(:expected_posts_plain) { posts[0..0] }
+  
+              let(:cursor_object_desc) { posts[-2] }
+              let(:expected_posts_desc) { posts[-1..].reverse }
+  
+              let(:cursor_object_by_author) { posts_by_author[1] }
+              let(:expected_posts_by_author) { posts_by_author[0..0] }
+  
+              let(:cursor_object_by_author_desc) { posts_by_author[-2] }
+              let(:expected_posts_by_author_desc) do
+                posts_by_author[-1..].reverse
+              end
+  
+              let(:expected_has_next_page) { true }
+              let(:expected_has_previous_page) { false }
+            end
+          end
+        end
+  
+        context 'and `limit`' do
+          let(:params) { super().merge(limit: 2) }
+  
+          include_examples 'for a working query' do
+            let(:cursor_object_plain) { posts[-1] }
+            let(:expected_posts_plain) { posts[-3..-2] }
+  
+            let(:cursor_object_desc) { posts[2] }
+            let(:expected_posts_desc) { posts[3..4].reverse }
+  
+            let(:cursor_object_by_author) { posts_by_author[-1] }
+            let(:expected_posts_by_author) { posts_by_author[-3..-2] }
+  
+            let(:cursor_object_by_author_desc) { posts_by_author[2] }
+            let(:expected_posts_by_author_desc) do
+              posts_by_author[3..4].reverse
+            end
+  
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { true }
+          end
+  
+          context 'when not enough records are remaining before cursor' do
+            include_examples 'for a working query' do
+              let(:cursor_object_plain) { posts[1] }
+              let(:expected_posts_plain) { posts[0..0] }
+  
+              let(:cursor_object_desc) { posts[-2] }
+              let(:expected_posts_desc) { posts[-1..].reverse }
+  
+              let(:cursor_object_by_author) { posts_by_author[1] }
+              let(:expected_posts_by_author) { posts_by_author[0..0] }
+  
+              let(:cursor_object_by_author_desc) { posts_by_author[-2] }
+              let(:expected_posts_by_author_desc) do
+                posts_by_author[-1..].reverse
+              end
+  
+              let(:expected_has_next_page) { true }
+              let(:expected_has_previous_page) { false }
+            end
+          end
+        end
+      end
+    end
 
+    context 'for timestamp custom_order_field - created_at' do
+      let(:posts_by_created_at) do
+        # Posts are first ordered by the created_at timestamp and then, in case of two
+        # posts having the same created_at timestamp, by ID
+        [
+          post_1,
+          post_2,
+          post_3,
+          post_4,
+          post_5,
+          post_6,
+          post_7,
+          post_8,
+          post_9,
+          post_10,
+          post_11,
+          post_12,
+          post_13
+        ]
+      end
+  
+      let(:cursor_object_by_created_at) { nil }
+      let(:cursor_object_by_created_at_desc) { nil }
+
+      context 'when neither first/last/limit nor before/after are passed' do
+        include_examples 'for a working query' do
+          let(:expected_posts_plain) { posts.first(10) }
+          let(:expected_posts_desc) { posts.reverse.first(10) }
+  
+          let(:expected_posts_by_created_at) { posts_by_created_at.first(10) }
+          let(:expected_posts_by_created_at_desc) do
+            posts_by_created_at.reverse.first(10)
+          end
+  
+          let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { false }
+        end
+  
+        context 'when a different default_page_size has been set' do
+          let(:custom_page_size) { 2 }
+  
+          before do
+            RailsCursorPagination.configure do |config|
+              config.default_page_size = custom_page_size
+            end
+          end
+  
+          after { RailsCursorPagination.configure(&:reset!) }
+  
+          include_examples 'for a working query' do
+            let(:expected_posts_plain) { posts.first(custom_page_size) }
+            let(:expected_posts_desc) { posts.reverse.first(custom_page_size) }
+  
+            let(:expected_posts_by_created_at) do
+              posts_by_created_at.first(custom_page_size)
+            end
+            let(:expected_posts_by_created_at_desc) do
+              posts_by_created_at.reverse.first(custom_page_size)
+            end
+  
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { false }
+          end
+        end
+  
+        context 'when a max_page_size has been set' do
+          let(:max_page_size) { 2 }
+  
+          before do
+            RailsCursorPagination.configure do |config|
+              config.max_page_size = max_page_size
+            end
+          end
+  
+          after { RailsCursorPagination.configure(&:reset!) }
+  
+          include_examples 'for a working query' do
+            let(:expected_posts_plain) { posts.first(max_page_size) }
+            let(:expected_posts_desc) { posts.reverse.first(max_page_size) }
+  
+            let(:expected_posts_by_created_at) do
+              posts_by_created_at.first(max_page_size)
+            end
+            let(:expected_posts_by_created_at_desc) do
+              posts_by_created_at.reverse.first(max_page_size)
+            end
+  
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { false }
+          end
+  
+          context 'when attempting to go over the limit' do
+            let(:params) { { first: 5 } }
+  
+            include_examples 'for a working query' do
+              let(:expected_posts_plain) { posts.first(max_page_size) }
+              let(:expected_posts_desc) { posts.reverse.first(max_page_size) }
+  
+              let(:expected_posts_by_created_at) do
+                posts_by_created_at.first(max_page_size)
+              end
+              let(:expected_posts_by_created_at_desc) do
+                posts_by_created_at.reverse.first(max_page_size)
+              end
+  
+              let(:expected_has_next_page) { true }
+              let(:expected_has_previous_page) { false }
+            end
+          end
+        end
+  
+        context 'when `order` and `order_by` are explicitly set to `nil`' do
+          let(:params) { super().merge(order: nil, order_by: nil) }
+  
+          it_behaves_like 'a well working query that also supports SELECT' do
+            let(:expected_posts) { posts.first(10) }
+            let(:expected_cursor) { ->(post) { post.id } }
+  
             let(:expected_has_next_page) { true }
             let(:expected_has_previous_page) { false }
           end
         end
       end
-
-      context 'and `limit`' do
-        let(:params) { super().merge(limit: 2) }
-
+  
+      context 'when only passing first' do
+        let(:params) { { first: 2 } }
+  
         include_examples 'for a working query' do
-          let(:cursor_object_plain) { posts[-1] }
-          let(:expected_posts_plain) { posts[-3..-2] }
-
-          let(:cursor_object_desc) { posts[2] }
-          let(:expected_posts_desc) { posts[3..4].reverse }
-
-          let(:cursor_object_by_author) { posts_by_author[-1] }
-          let(:expected_posts_by_author) { posts_by_author[-3..-2] }
-
-          let(:cursor_object_by_author_desc) { posts_by_author[2] }
-          let(:expected_posts_by_author_desc) do
-            posts_by_author[3..4].reverse
+          let(:expected_posts_plain) { posts.first(2) }
+          let(:expected_posts_desc) { posts.reverse.first(2) }
+  
+          let(:expected_posts_by_created_at) { posts_by_created_at.first(2) }
+          let(:expected_posts_by_created_at_desc) { posts_by_created_at.reverse.first(2) }
+  
+          let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { false }
+        end
+  
+        context 'when there are less records than requested' do
+          let(:params) { { first: posts.size + 1 } }
+  
+          include_examples 'for a working query' do
+            let(:expected_posts_plain) { posts }
+            let(:expected_posts_desc) { posts.reverse }
+  
+            let(:expected_posts_by_created_at) { posts_by_created_at }
+            let(:expected_posts_by_created_at_desc) { posts_by_created_at.reverse }
+  
+            let(:expected_has_next_page) { false }
+            let(:expected_has_previous_page) { false }
           end
-
+        end
+      end
+  
+      context 'when only passing limit' do
+        let(:params) { { limit: 2 } }
+  
+        include_examples 'for a working query' do
+          let(:expected_posts_plain) { posts.first(2) }
+          let(:expected_posts_desc) { posts.reverse.first(2) }
+  
+          let(:expected_posts_by_created_at) { posts_by_created_at.first(2) }
+          let(:expected_posts_by_created_at_desc) { posts_by_created_at.reverse.first(2) }
+  
+          let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { false }
+        end
+  
+        context 'when there are less records than requested' do
+          let(:params) { { first: posts.size + 1 } }
+  
+          include_examples 'for a working query' do
+            let(:expected_posts_plain) { posts }
+            let(:expected_posts_desc) { posts.reverse }
+  
+            let(:expected_posts_by_created_at) { posts_by_created_at }
+            let(:expected_posts_by_created_at_desc) { posts_by_created_at.reverse }
+  
+            let(:expected_has_next_page) { false }
+            let(:expected_has_previous_page) { false }
+          end
+        end
+      end
+  
+      context 'when passing `after`' do
+        let(:params) { { after: query_cursor } }
+  
+        include_examples 'for a working query' do
+          let(:cursor_object_plain) { posts[0] }
+          let(:expected_posts_plain) { posts[1..10] }
+  
+          let(:cursor_object_desc) { posts[-1] }
+          let(:expected_posts_desc) { posts[-11..-2].reverse }
+  
+          let(:cursor_object_by_created_at) { posts_by_created_at[0] }
+          let(:expected_posts_by_created_at) { posts_by_created_at[1..10] }
+  
+          let(:cursor_object_by_created_at_desc) { posts_by_created_at[-1] }
+          let(:expected_posts_by_created_at_desc) { posts_by_created_at[-11..-2].reverse }
+  
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { true }
         end
-
-        context 'when not enough records are remaining before cursor' do
+  
+        context 'and `first`' do
+          let(:params) { super().merge(first: 2) }
+  
           include_examples 'for a working query' do
-            let(:cursor_object_plain) { posts[1] }
-            let(:expected_posts_plain) { posts[0..0] }
-
+            let(:cursor_object_plain) { posts[2] }
+            let(:expected_posts_plain) { posts[3..4] }
+  
             let(:cursor_object_desc) { posts[-2] }
-            let(:expected_posts_desc) { posts[-1..].reverse }
-
-            let(:cursor_object_by_author) { posts_by_author[1] }
-            let(:expected_posts_by_author) { posts_by_author[0..0] }
-
-            let(:cursor_object_by_author_desc) { posts_by_author[-2] }
-            let(:expected_posts_by_author_desc) do
-              posts_by_author[-1..].reverse
+            let(:expected_posts_desc) { posts[-4..-3].reverse }
+  
+            let(:cursor_object_by_created_at) { posts_by_created_at[2] }
+            let(:expected_posts_by_created_at) { posts_by_created_at[3..4] }
+  
+            let(:cursor_object_by_created_at_desc) { posts_by_created_at[-2] }
+            let(:expected_posts_by_created_at_desc) do
+              posts_by_created_at[-4..-3].reverse
             end
-
+  
             let(:expected_has_next_page) { true }
-            let(:expected_has_previous_page) { false }
+            let(:expected_has_previous_page) { true }
+          end
+  
+          context 'when not enough records are remaining after cursor' do
+            include_examples 'for a working query' do
+              let(:cursor_object_plain) { posts[-2] }
+              let(:expected_posts_plain) { posts[-1..] }
+  
+              let(:cursor_object_desc) { posts[1] }
+              let(:expected_posts_desc) { posts[0..0].reverse }
+  
+              let(:cursor_object_by_created_at) { posts_by_created_at[-2] }
+              let(:expected_posts_by_created_at) { posts_by_created_at[-1..] }
+  
+              let(:cursor_object_by_created_at_desc) { posts_by_created_at[1] }
+              let(:expected_posts_by_created_at_desc) do
+                posts_by_created_at[0..0].reverse
+              end
+  
+              let(:expected_has_next_page) { false }
+              let(:expected_has_previous_page) { true }
+            end
+          end
+        end
+  
+        context 'and `limit`' do
+          let(:params) { super().merge(limit: 2) }
+  
+          include_examples 'for a working query' do
+            let(:cursor_object_plain) { posts[2] }
+            let(:expected_posts_plain) { posts[3..4] }
+  
+            let(:cursor_object_desc) { posts[-2] }
+            let(:expected_posts_desc) { posts[-4..-3].reverse }
+  
+            let(:cursor_object_by_created_at) { posts_by_created_at[2] }
+            let(:expected_posts_by_created_at) { posts_by_created_at[3..4] }
+  
+            let(:cursor_object_by_created_at_desc) { posts_by_created_at[-2] }
+            let(:expected_posts_by_created_at_desc) do
+              posts_by_created_at[-4..-3].reverse
+            end
+  
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { true }
+          end
+  
+          context 'when not enough records are remaining after cursor' do
+            include_examples 'for a working query' do
+              let(:cursor_object_plain) { posts[-2] }
+              let(:expected_posts_plain) { posts[-1..] }
+  
+              let(:cursor_object_desc) { posts[1] }
+              let(:expected_posts_desc) { posts[0..0].reverse }
+  
+              let(:cursor_object_by_created_at) { posts_by_created_at[-2] }
+              let(:expected_posts_by_created_at) { posts_by_created_at[-1..] }
+  
+              let(:cursor_object_by_created_at_desc) { posts_by_created_at[1] }
+              let(:expected_posts_by_created_at_desc) do
+                posts_by_created_at[0..0].reverse
+              end
+  
+              let(:expected_has_next_page) { false }
+              let(:expected_has_previous_page) { true }
+            end
+          end
+        end
+      end
+  
+      context 'when passing `before`' do
+        let(:params) { { before: query_cursor } }
+  
+        include_examples 'for a working query' do
+          let(:cursor_object_plain) { posts[-1] }
+          let(:expected_posts_plain) { posts[-11..-2] }
+  
+          let(:cursor_object_desc) { posts[0] }
+          let(:expected_posts_desc) { posts[1..10].reverse }
+  
+          let(:cursor_object_by_created_at) { posts_by_created_at[-1] }
+          let(:expected_posts_by_created_at) { posts_by_created_at[-11..-2] }
+  
+          let(:cursor_object_by_created_at_desc) { posts_by_created_at[0] }
+          let(:expected_posts_by_created_at_desc) { posts_by_created_at[1..10].reverse }
+  
+          let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { true }
+        end
+  
+        context 'and `last`' do
+          let(:params) { super().merge(last: 2) }
+  
+          include_examples 'for a working query' do
+            let(:cursor_object_plain) { posts[-1] }
+            let(:expected_posts_plain) { posts[-3..-2] }
+  
+            let(:cursor_object_desc) { posts[2] }
+            let(:expected_posts_desc) { posts[3..4].reverse }
+  
+            let(:cursor_object_by_created_at) { posts_by_created_at[-1] }
+            let(:expected_posts_by_created_at) { posts_by_created_at[-3..-2] }
+  
+            let(:cursor_object_by_created_at_desc) { posts_by_created_at[2] }
+            let(:expected_posts_by_created_at_desc) { posts_by_created_at[3..4].reverse }
+  
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { true }
+          end
+  
+          context 'when not enough records are remaining before cursor' do
+            include_examples 'for a working query' do
+              let(:cursor_object_plain) { posts[1] }
+              let(:expected_posts_plain) { posts[0..0] }
+  
+              let(:cursor_object_desc) { posts[-2] }
+              let(:expected_posts_desc) { posts[-1..].reverse }
+  
+              let(:cursor_object_by_created_at) { posts_by_created_at[1] }
+              let(:expected_posts_by_created_at) { posts_by_created_at[0..0] }
+  
+              let(:cursor_object_by_created_at_desc) { posts_by_created_at[-2] }
+              let(:expected_posts_by_created_at_desc) do
+                posts_by_created_at[-1..].reverse
+              end
+  
+              let(:expected_has_next_page) { true }
+              let(:expected_has_previous_page) { false }
+            end
+          end
+        end
+  
+        context 'and `limit`' do
+          let(:params) { super().merge(limit: 2) }
+  
+          include_examples 'for a working query' do
+            let(:cursor_object_plain) { posts[-1] }
+            let(:expected_posts_plain) { posts[-3..-2] }
+  
+            let(:cursor_object_desc) { posts[2] }
+            let(:expected_posts_desc) { posts[3..4].reverse }
+  
+            let(:cursor_object_by_created_at) { posts_by_created_at[-1] }
+            let(:expected_posts_by_created_at) { posts_by_created_at[-3..-2] }
+  
+            let(:cursor_object_by_created_at_desc) { posts_by_created_at[2] }
+            let(:expected_posts_by_created_at_desc) do
+              posts_by_created_at[3..4].reverse
+            end
+  
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { true }
+          end
+  
+          context 'when not enough records are remaining before cursor' do
+            include_examples 'for a working query' do
+              let(:cursor_object_plain) { posts[1] }
+              let(:expected_posts_plain) { posts[0..0] }
+  
+              let(:cursor_object_desc) { posts[-2] }
+              let(:expected_posts_desc) { posts[-1..].reverse }
+  
+              let(:cursor_object_by_created_at) { posts_by_created_at[1] }
+              let(:expected_posts_by_created_at) { posts_by_created_at[0..0] }
+  
+              let(:cursor_object_by_created_at_desc) { posts_by_created_at[-2] }
+              let(:expected_posts_by_created_at_desc) do
+                posts_by_created_at[-1..].reverse
+              end
+  
+              let(:expected_has_next_page) { true }
+              let(:expected_has_previous_page) { false }
+            end
           end
         end
       end
