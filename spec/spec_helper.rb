@@ -29,13 +29,14 @@ RSpec.configure do |config|
     host: ENV.fetch('DB_HOST', nil),
     username: ENV.fetch('DB_USER', nil)
   )
-
+  
   # Ensure we have an empty `posts` table with the right format
   ActiveRecord::Migration.drop_table :posts, if_exists: true
 
   ActiveRecord::Migration.create_table :posts do |t|
     t.string :author
     t.string :content
+    t.timestamps
   end
 
   config.before(:each) { Post.delete_all }
