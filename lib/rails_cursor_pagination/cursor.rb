@@ -42,17 +42,30 @@ module RailsCursorPagination
           end
           new(id: decoded, order_field: :id)
         else
-          unless decoded.is_a?(Array) && decoded.size == 2
-            raise InvalidCursorError,
-                  "The given cursor `#{encoded_string}` was decoded as " \
-                  "`#{decoded}` but could not be parsed"
-          end
-          new(id: decoded[1], order_field: order_field,
-              order_field_value: decoded[0])
+          decode_custom_order_field(decoded: decoded, order_field: order_field)
         end
       rescue ArgumentError, JSON::ParserError
         raise InvalidCursorError,
               "The given cursor `#{encoded_string}` could not be decoded"
+      end
+
+      def decode_custom_order_field(decoded:, order_field:)
+        unless decoded.is_a?(Array) && decoded.size == 2
+          raise InvalidCursorError,
+                "The given cursor `#{encoded_string}` was decoded as " \
+                "`#{decoded}` but could not be parsed"
+        end
+        if decoded[0].is_a?(Hash)
+          new(id: decoded[1], order_field: order_field,
+              order_field_value: Time.at(
+                decoded[0]['seconds'],
+                decoded[0]['nanoseconds'],
+                :nsec
+              ))
+        else
+          new(id: decoded[1], order_field: order_field,
+              order_field_value: decoded[0])
+        end
       end
     end
 
@@ -89,7 +102,14 @@ module RailsCursorPagination
     def encode
       unencoded_cursor =
         if custom_order_field?
-          [@order_field_value, @id]
+          if @order_field_value.respond_to?(:strftime)
+            [{
+              seconds: order_field_value.to_i,
+              nanoseconds: order_field_value.nsec
+            }, @id]
+          else
+            [@order_field_value, @id]
+          end
         else
           @id
         end

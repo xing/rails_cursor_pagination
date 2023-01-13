@@ -229,7 +229,7 @@ RSpec.describe RailsCursorPagination::Paginator do
           )
         end
       end
-      let(:expected_attributes) { %i[id author content] }
+      let(:expected_attributes) { %i[id author content created_at updated_at] }
 
       it 'has the correct format' do
         is_expected.to be_a Hash

@@ -35,6 +35,7 @@ RSpec.configure do |config|
   ActiveRecord::Migration.create_table :posts do |t|
     t.string :author
     t.string :content
+    t.timestamps
   end
 
   config.before(:each) { Post.delete_all }
