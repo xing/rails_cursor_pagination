@@ -77,6 +77,9 @@ If omitted, or set to `false`, the resulting hash will lack the `:total` key, bu
 It is therefore recommended to only pass `with_total: true` when requested by the user.
 So in the next examples we will also leave it away.
 
+By default, the page_info also includes the 'has_previous_page' and 'has_next_page' keys. These are set to true if there's a previous or next page, respectively.
+Both sometimes requires a count query to be executed, which can be expensive. If you want to disable this behavior, you can pass `check_next: false` and/or `check_previous: false`.
+
 To then get the next result page, you simply need to pass the last cursor of the returned page item via:
 
 ```ruby

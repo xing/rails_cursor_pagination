@@ -295,6 +295,22 @@ RSpec.describe RailsCursorPagination::Paginator do
           expect(subject[:total]).to eq expected_total
         end
       end
+
+      context 'when passing `check_next: false`' do
+        subject(:result) { instance.fetch(check_next: false) }
+
+        it 'does not include the `has_next_page` in `page_info`' do
+          expect(subject[:page_info]).to_not have_key :has_next_page
+        end
+      end
+
+      context 'when passing `check_previous: false`' do
+        subject(:result) { instance.fetch(check_previous: false) }
+
+        it 'does not include the `has_previous_page` in `page_info`' do
+          expect(subject[:page_info]).to_not have_key :has_previous_page
+        end
+      end
     end
 
     shared_examples_for 'a well working query that also supports SELECT' do
