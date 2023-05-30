@@ -74,11 +74,13 @@ module RailsCursorPagination
     # `total` of records across all pages.
     #
     # @param with_total [TrueClass, FalseClass]
+    # @param check_next [TrueClass, FalseClass]
+    # @param check_previous [TrueClass, FalseClass]
     # @return [Hash] with keys :page, :page_info, and optional :total
-    def fetch(with_total: false)
+    def fetch(with_total: false, check_next: true, check_previous: true)
       {
         **(with_total ? { total: total } : {}),
-        page_info: page_info,
+        page_info: page_info(check_next, check_previous),
         page: page
       }
     end
@@ -164,11 +166,13 @@ module RailsCursorPagination
 
     # Get meta information about the current page
     #
+    # @param check_next [TrueClass, FalseClass]
+    # @param check_previous [TrueClass, FalseClass]
     # @return [Hash]
-    def page_info
+    def page_info(check_next, check_previous)
       {
-        has_previous_page: previous_page?,
-        has_next_page: next_page?,
+        **(check_previous ? { has_previous_page: previous_page? } : {}),
+        **(check_next ? { has_next_page: next_page? } : {}),
         start_cursor: start_cursor,
         end_cursor: end_cursor
       }

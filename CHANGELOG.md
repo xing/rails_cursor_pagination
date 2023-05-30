@@ -14,6 +14,9 @@ These are the latest changes on the project's `master` branch that have not yet 
   Follow the same format as previous releases by categorizing your feature into "Added", "Changed", "Deprecated", "Removed", "Fixed", or "Security".
 --->
 
+### Added
+- Add option to not include `has_previous_page` and `has_next_page` in the `page_info`
+
 ## [0.3.0] - 2022-07-08
 
 ### Added
