@@ -38,5 +38,5 @@ Gem::Specification.new do |spec|
                         ])
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'activerecord', '>= 5.0'
+  spec.add_dependency 'activerecord', '>= 6.0'
 end

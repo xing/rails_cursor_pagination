@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     rails_cursor_pagination (0.3.0)
-      activerecord (>= 5.0)
+      activerecord (>= 6.0)
 
 GEM
   remote: https://rubygems.org/
@@ -77,4 +77,4 @@ DEPENDENCIES
   rubocop (~> 1.31)
 
 BUNDLED WITH
-   2.1.4
+   2.2.33

@@ -16,6 +16,7 @@ These are the latest changes on the project's `master` branch that have not yet 
 
 ### Changed
 - Raised minimum required Ruby version to 2.7
+- Raised minimum required `activerecord` version to 6.0
 
 ### Added
 - Test against Ruby version 3.2
