@@ -14,6 +14,12 @@ These are the latest changes on the project's `master` branch that have not yet 
   Follow the same format as previous releases by categorizing your feature into "Added", "Changed", "Deprecated", "Removed", "Fixed", or "Security".
 --->
 
+### Changed
+- Raised minimum required Ruby version to 2.7
+
+### Added
+- Test against Ruby version 3.2
+
 ## [0.3.0] - 2022-07-08
 
 ### Added

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'base64'
+
 module RailsCursorPagination
   # Cursor class that's used to uniquely identify a record and serialize and
   # deserialize this cursor so that it can be used for pagination.
