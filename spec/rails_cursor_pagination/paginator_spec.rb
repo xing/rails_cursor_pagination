@@ -68,7 +68,7 @@ RSpec.describe RailsCursorPagination::Paginator do
       shared_examples 'for a ParameterError with the right message' do |message|
         it 'raises an error with the right message' do
           expect { subject }
-            .to raise_error ::RailsCursorPagination::ParameterError,
+            .to raise_error RailsCursorPagination::ParameterError,
                             message
         end
       end

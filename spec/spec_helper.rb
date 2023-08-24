@@ -3,6 +3,7 @@
 require 'bundler/setup'
 require 'rails_cursor_pagination'
 require 'active_record'
+require 'base64'
 
 # This dummy ActiveRecord class is used for testing
 class Post < ActiveRecord::Base; end
