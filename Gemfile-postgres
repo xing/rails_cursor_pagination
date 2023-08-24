@@ -11,4 +11,4 @@ gem 'rspec'
 
 gem 'rubocop'
 
-gem 'mysql2'
+gem 'pg'

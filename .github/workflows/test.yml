@@ -2,13 +2,13 @@ name: Run Rubocop and RSpec
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   rubocop:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - name: Set up Ruby
@@ -19,12 +19,15 @@ jobs:
       - name: Run Rubocop
         run: bundle exec rake rubocop
 
-  test-on-mysql:
-    runs-on: ubuntu-18.04
+
+  # MySQL 5.7 is not supported on Ubuntu 22, therefore using MacOS for this
+  # version
+  test-on-mysql-5-7:
+    runs-on: macos-13
     strategy:
       matrix:
-        ruby-version: ['2.7', '3.0', '3.1', '3.2']
-        mysql-version: ['5.7', '8.0']
+        ruby-version: ['2.7', '3.0', '3.1']
+        mysql-version: ['5.7']
 
     steps:
       - uses: actions/checkout@v2
@@ -45,12 +48,42 @@ jobs:
           DB_HOST: 127.0.0.1
           DB_USER: root
 
+
+  test-on-mysql-8:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        ruby-version: ['2.7', '3.0', '3.1', '3.2']
+        mysql-version: ['8.0']
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ankane/setup-mysql@v1
+        with:
+          mysql-version: ${{ matrix.mysql-version }}
+      - name: Create the test database
+        run: mysqladmin create rails_cursor_pagination_testing
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+      - name: Run tests
+        run: bundle exec rake spec
+        env:
+          DB_ADAPTER: mysql2
+          DB_HOST: 127.0.0.1
+          DB_USER: root
+
+
   test-on-postgres:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         ruby-version: ['2.7', '3.0', '3.1', '3.2']
         postgres-version: [12, 13, 14, 15]
+    env:
+      BUNDLE_GEMFILE: Gemfile-postgres
 
     steps:
       - uses: actions/checkout@v2
