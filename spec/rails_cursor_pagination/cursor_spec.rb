@@ -51,12 +51,55 @@ RSpec.describe RailsCursorPagination::Cursor do
         expect(decoded.order_field_value).to eq record.author
       end
     end
+
+    context 'when specifying a custom primary key' do
+      subject(:encoded) do
+        described_class.from_record(record: record, primary_key: :author).encode
+      end
+
+      it 'produces a valid string' do
+        expect(encoded).to be_a(String)
+      end
+
+      it 'can be decoded back to the originally encoded value' do
+        decoded = described_class.decode(encoded_string: encoded,
+                                         primary_key: :author)
+        expect(decoded.primary_key_value).to eq record.author
+      end
+    end
+  end
+
+  describe '#id' do
+    let(:record) { Post.create! id: 1, author: 'John', content: 'Post 1' }
+
+    context 'when the primary_key is :id (default)' do
+      subject(:cursor) { described_class.from_record(record: record) }
+
+      it 'returns the id of the record' do
+        expect(cursor.id).to eq(record.id)
+      end
+    end
+
+    context 'when the primary_key is not :id' do
+      subject(:cursor) do
+        described_class.from_record(record: record, primary_key: :author)
+      end
+
+      it 'raises an error' do
+        expect { cursor.id }.to(
+          raise_error(
+            RailsCursorPagination::ParameterError,
+            'When using custom primary keys, the #id method is not supported'
+          )
+        )
+      end
+    end
   end
 
   describe '.from_record' do
     let(:record) { Post.create! id: 1, author: 'John', content: 'Post 1' }
 
-    context 'when not specifying the order_field' do
+    context 'when not specifying the order_field and primary_key' do
       subject(:from_record) { described_class.from_record(record: record) }
 
       it 'returns a cursor with the same ID as the record' do
@@ -77,6 +120,17 @@ RSpec.describe RailsCursorPagination::Cursor do
 
       it 'returns a cursor with the order_field_value as the record' do
         expect(from_record.order_field_value).to eq record.author
+      end
+    end
+
+    context 'when specifying the primary_key' do
+      subject(:from_record) do
+        described_class.from_record(record: record, primary_key: :author)
+      end
+
+      it 'returns a cursor with the specified primary key value' do
+        expect(from_record).to be_a(RailsCursorPagination::Cursor)
+        expect(from_record.primary_key_value).to eq record.author
       end
     end
   end
@@ -189,21 +243,68 @@ RSpec.describe RailsCursorPagination::Cursor do
         end
       end
     end
+
+    context 'when decoding a message with a custom primary key' do
+      let(:record) { Post.create! id: 1, author: 'John', content: 'Post 1' }
+      let(:encoded) do
+        described_class
+          .from_record(
+            record: record,
+            order_field: :author,
+            primary_key: :author
+          ).encode
+      end
+      subject(:decoded) do
+        described_class.decode(encoded_string: encoded)
+      end
+
+      it 'decodes the string successfully' do
+        expect(decoded.primary_key_value).to eq(record.author)
+      end
+    end
   end
 
   describe '.new' do
-    context 'when initialized with an id' do
-      context 'and only an id' do
-        subject(:cursor) { described_class.new(id: 13) }
+    subject(:cursor) { described_class.new(**initializer_params) }
+
+    context 'when initialized with a primary key value' do
+      context 'and only a primary key value' do
+        let(:initializer_params) { { primary_key_value: 13 } }
 
         it 'returns an instance of a Cursor' do
           expect(cursor).to be_a(RailsCursorPagination::Cursor)
         end
       end
 
+      context 'and a primary_key' do
+        let(:initializer_params) do
+          { primary_key_value: 'John', primary_key: :author }
+        end
+
+        context 'but no matching order_field' do
+          it 'returns an instance of a Cursor' do
+            expect(cursor).to be_a(RailsCursorPagination::Cursor)
+          end
+
+          it 'sets the order field with the primary key' do
+            expect(cursor.instance_variable_get(:@order_field)).to eq(:author)
+          end
+        end
+
+        context 'and a matching order_field' do
+          let(:initializer_params) { super().merge(order_field: :author) }
+
+          it 'returns an instance of a Cursor' do
+            expect(cursor).to be_a(RailsCursorPagination::Cursor)
+          end
+        end
+      end
+
       context 'and an order_field' do
         context 'but no order_field_value' do
-          subject(:cursor) { described_class.new(id: 13, order_field: :author) }
+          let(:initializer_params) do
+            { primary_key_value: 13, order_field: :author }
+          end
 
           it 'raises a ParameterError' do
             message = 'The `order_field` was set to ' \
@@ -216,9 +317,12 @@ RSpec.describe RailsCursorPagination::Cursor do
         end
 
         context 'and an order_field_value' do
-          subject(:cursor) do
-            described_class.new(id: 13, order_field: :author,
-                                order_field_value: 'Thomas')
+          let(:initializer_params) do
+            {
+              primary_key_value: 13,
+              order_field: :author,
+              order_field_value: 'Thomas'
+            }
           end
 
           it 'returns an instance of a Cursor' do

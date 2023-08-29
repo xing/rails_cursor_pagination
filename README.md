@@ -273,12 +273,35 @@ RailsCursorPagination::Paginator
   .new(Post.select(:id, :author))
 ```
 
-One important thing to note is that the ID of the record _will always be returned_, whether you selected it or not.
+One important thing to note is that the primary key of the record _will always be returned_, whether you selected it or not.
 This is due to how the cursor is generated.
-It requires the record's ID to always be present.
+It requires the record's primary key to always be present.
 Therefore, even if it is not selected by you, it will be added to the query.
 
+By default, the `:id` is used as primary key.
+You can specify a different primary key using the `primary_key:` parameter in case you use something different than IDs (e.g. UUID) or if your query is aggregated by some value.
+Always **make sure that the primary key is unique**!
+Otherwise, the generated cursors will not identify a unique record and the pagination breaks.
+
+For example, you could have a query like the one below to get the latest date an author created a post:
+
+```ruby
+RailsCursorPagination::Paginator
+  .new(
+    Post.select('author, MAX(created_at) as created_at').group(:author),
+    primary_key: :author
+  )
+```
+
+Without the `primary_key:` parameter this would also `SELECT` the `id` parameter (which is the default primary key).
+But since the `id` is not part of the `.group` call, depending on the database used, this can lead to errors.
+
+**Only use `primary_key:` when you know what you are doing!**
+
 The same goes for any field that is specified via `order_by:`, this field is also required for building the cursor and will therefore automatically be requested from the database.
+
+If `order_by:` is not specified it will use the `primary_key:` value.
+If neither is specified, both will default to `:id`.
 
 ## How does it work?
 
@@ -315,7 +338,7 @@ LIMIT 2
 ```
 
 This will return the first page of results, containing post #1 and #2.
-Since no custom order is defined, each item in the returned collection will have a cursor that only encodes the record's ID.
+Since no custom order is defined, each item in the returned collection will have a cursor that only encodes the record's primary key (its ID).
 
 If we want to now request the next page, we can pass in the cursor of record #2 which would be `"Mg=="`.
 So now we can request the next page by calling:

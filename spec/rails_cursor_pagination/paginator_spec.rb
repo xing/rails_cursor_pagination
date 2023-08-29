@@ -4,6 +4,7 @@ RSpec.describe RailsCursorPagination::Paginator do
   subject(:instance) { described_class.new(relation, **params) }
 
   let(:relation) { Post.all }
+  let(:primary_key) { :id }
   let(:params) { {} }
 
   describe '.new' do
@@ -34,11 +35,25 @@ RSpec.describe RailsCursorPagination::Paginator do
         end
       end
 
+      shared_examples 'for a working combination with `primary_key` param' do
+        context 'without setting order_by' do
+          let(:params) { super().merge(primary_key: :content) }
+
+          it { is_expected.to be_a described_class }
+          it 'assigns the order_field variable to the primary_key' do
+            expect(subject.instance_variable_get(:@order_field)).to eq(:content)
+          end
+        end
+
+        include_examples 'for a working combination with `order_by` param'
+      end
+
       shared_examples 'for a working parameter combination' do
         it { is_expected.to be_a described_class }
 
         include_examples 'for a working combination with `order` param'
         include_examples 'for a working combination with `order_by` param'
+        include_examples 'for a working combination with `primary_key` param'
       end
 
       context 'when only passing the relation' do
@@ -163,7 +178,7 @@ RSpec.describe RailsCursorPagination::Paginator do
     let(:post_10) { Post.create! id: 10, author: 'Jess', content: 'Post 10' }
     let(:post_11) { Post.create! id: 11, author: 'John', content: 'Post 11' }
     let(:post_12) { Post.create! id: 12, author: 'John', content: 'Post 12' }
-    let(:post_13) { Post.create! id: 13, author: 'Jane', content: 'Post 13' }
+    let(:post_13) { Post.create! id: 13, author: 'Jane', content: 'AAA First' }
 
     let!(:posts) do
       [
@@ -202,6 +217,30 @@ RSpec.describe RailsCursorPagination::Paginator do
         post_8,
         post_11,
         post_12
+      ]
+    end
+    let(:posts_by_content) do
+      [
+        post_13,
+        post_1,
+        post_10,
+        post_11,
+        post_12,
+        post_2,
+        post_3,
+        post_4,
+        post_5,
+        post_6,
+        post_7,
+        post_8,
+        post_9
+      ]
+    end
+    let(:posts_by_author_aggregated) do
+      [
+        Post.new(id: 13, author: 'Jane', content: 'Post 7'),
+        Post.new(id: 10, author: 'Jess', content: 'Post 9'),
+        Post.new(id: 12, author: 'John', content: 'Post 8')
       ]
     end
 
@@ -270,8 +309,15 @@ RSpec.describe RailsCursorPagination::Paginator do
           is_expected.to all include :cursor, :data
 
           expect(subject.pluck(:data)).to all be_a Post
-          expect(subject.pluck(:data)).to match_array expected_posts
-          expect(subject.pluck(:data)).to eq expected_posts
+          # skip these expectations when ids are blank because RSpec will not
+          # be able to assert equality of the posts
+          unless subject.pluck(:data).map(&:id).all?(&:blank?)
+            expect(subject.pluck(:data)).to match_array expected_posts
+            expect(subject.pluck(:data)).to eq expected_posts
+          end
+          expect(subject.pluck(:data).map(&primary_key)).to(
+            eq(expected_posts.map(&primary_key))
+          )
           expect(subject.pluck(:data).map(&:attributes).map(&:keys))
             .to all match_array expected_attributes.map(&:to_s)
 
@@ -351,6 +397,44 @@ RSpec.describe RailsCursorPagination::Paginator do
       end
     end
 
+    shared_examples_for 'a query that works with a custom `primary_key`' do
+      let(:params) { super().merge(primary_key: :content) }
+      let(:primary_key) { :content }
+
+      context 'when SELECTing all columns' do
+        context 'without calling select' do
+          it_behaves_like 'a properly returned response'
+        end
+
+        context 'including the "*" select' do
+          let(:selected_attributes) { ['*'] }
+
+          it_behaves_like 'a properly returned response'
+        end
+      end
+
+      context 'when SELECTing only some columns' do
+        let(:selected_attributes) { %i[content author] }
+        let(:relation) { super().select(*selected_attributes) }
+
+        it_behaves_like 'a properly returned response' do
+          let(:expected_attributes) { %i[id author content] }
+        end
+
+        context 'and not including any cursor-relevant column' do
+          let(:selected_attributes) { %i[author] }
+
+          it_behaves_like 'a properly returned response' do
+            let(:expected_attributes) do
+              %i[id author content].tap do |attributes|
+                attributes << order_by_column if order_by_column.present?
+              end
+            end
+          end
+        end
+      end
+    end
+
     shared_examples_for 'a query that returns no data when relation is empty' do
       let(:relation) { Post.where(author: 'keks') }
 
@@ -392,6 +476,43 @@ RSpec.describe RailsCursorPagination::Paginator do
       end
 
       it_behaves_like 'a query that returns no data when relation is empty'
+
+      it_behaves_like 'a query that works with a custom `primary_key`' do
+        let(:cursor_object) { cursor_object_by_content }
+        let(:cursor_object_desc) { cursor_object_by_content_desc }
+        let(:query_cursor_base) { cursor_object&.content }
+
+        let(:expected_posts) { expected_posts_by_content }
+        let(:expected_posts_desc) { expected_posts_by_content_desc }
+        let(:expected_cursor) { ->(post) { post.content } }
+      end
+    end
+
+    shared_examples_for 'a query with an aggregation' do
+      let(:relation) do
+        super()
+          .select('author, MAX(content) AS content, MAX(id) AS id')
+          .group(:author)
+      end
+      let(:primary_key) { :author }
+      let(:params) { super().merge(primary_key: primary_key) }
+      let(:cursor_object) { cursor_object_by_author }
+      let(:cursor_object_desc) { cursor_object_by_author_desc }
+      let(:query_cursor_base) { cursor_object&.author }
+      let(:expected_cursor) { ->(post) { post.author } }
+
+      it_behaves_like 'a properly returned response' do
+        let(:expected_attributes) { %i[id author content] }
+      end
+
+      context 'when order is descending' do
+        let(:params) { super().merge(order: :desc) }
+        let(:cursor_object) { cursor_object_desc }
+
+        it_behaves_like 'a properly returned response' do
+          let(:expected_posts) { expected_posts_desc }
+        end
+      end
     end
 
     context 'when neither first/last/limit nor before/after are passed' do
@@ -404,8 +525,19 @@ RSpec.describe RailsCursorPagination::Paginator do
           posts_by_author.reverse.first(10)
         end
 
+        let(:expected_posts_by_content) { posts_by_content.first(10) }
+        let(:expected_posts_by_content_desc) do
+          posts_by_content.reverse.first(10)
+        end
+
         let(:expected_has_next_page) { true }
         let(:expected_has_previous_page) { false }
+      end
+
+      it_behaves_like 'a query with an aggregation' do
+        let(:expected_posts) { posts_by_author_aggregated }
+        let(:expected_posts_desc) { posts_by_author_aggregated.reverse }
+        let(:expected_has_next_page) { false }
       end
 
       context 'when a different default_page_size has been set' do
@@ -430,8 +562,21 @@ RSpec.describe RailsCursorPagination::Paginator do
             posts_by_author.reverse.first(custom_page_size)
           end
 
+          let(:expected_posts_by_content) do
+            posts_by_content.first(custom_page_size)
+          end
+          let(:expected_posts_by_content_desc) do
+            posts_by_content.reverse.first(custom_page_size)
+          end
+
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { false }
+        end
+
+        it_behaves_like 'a query with an aggregation' do
+          let(:expected_posts) { posts_by_author_aggregated.first(2) }
+          let(:expected_posts_desc) { posts_by_author_aggregated[1..].reverse }
+          let(:expected_has_next_page) { true }
         end
       end
 
@@ -457,8 +602,21 @@ RSpec.describe RailsCursorPagination::Paginator do
             posts_by_author.reverse.first(max_page_size)
           end
 
+          let(:expected_posts_by_content) do
+            posts_by_content.first(max_page_size)
+          end
+          let(:expected_posts_by_content_desc) do
+            posts_by_content.reverse.first(max_page_size)
+          end
+
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { false }
+        end
+
+        it_behaves_like 'a query with an aggregation' do
+          let(:expected_posts) { posts_by_author_aggregated.first(2) }
+          let(:expected_posts_desc) { posts_by_author_aggregated[1..].reverse }
+          let(:expected_has_next_page) { true }
         end
 
         context 'when attempting to go over the limit' do
@@ -475,8 +633,25 @@ RSpec.describe RailsCursorPagination::Paginator do
               posts_by_author.reverse.first(max_page_size)
             end
 
+            let(:expected_posts_by_content) do
+              posts_by_content.first(max_page_size)
+            end
+            let(:expected_posts_by_content_desc) do
+              posts_by_content.reverse.first(max_page_size)
+            end
+
             let(:expected_has_next_page) { true }
             let(:expected_has_previous_page) { false }
+          end
+
+          it_behaves_like 'a query with an aggregation' do
+            let(:expected_posts) do
+              posts_by_author_aggregated.first(max_page_size)
+            end
+            let(:expected_posts_desc) do
+              posts_by_author_aggregated.reverse.first(max_page_size)
+            end
+            let(:expected_has_next_page) { true }
           end
         end
       end
@@ -491,6 +666,12 @@ RSpec.describe RailsCursorPagination::Paginator do
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { false }
         end
+
+        it_behaves_like 'a query with an aggregation' do
+          let(:expected_posts) { posts_by_author_aggregated }
+          let(:expected_posts_desc) { posts_by_author_aggregated.reverse }
+          let(:expected_has_next_page) { false }
+        end
       end
     end
 
@@ -504,8 +685,19 @@ RSpec.describe RailsCursorPagination::Paginator do
         let(:expected_posts_by_author) { posts_by_author.first(2) }
         let(:expected_posts_by_author_desc) { posts_by_author.reverse.first(2) }
 
+        let(:expected_posts_by_content) { posts_by_content.first(2) }
+        let(:expected_posts_by_content_desc) do
+          posts_by_content.reverse.first(2)
+        end
+
         let(:expected_has_next_page) { true }
         let(:expected_has_previous_page) { false }
+      end
+
+      it_behaves_like 'a query with an aggregation' do
+        let(:expected_posts) { posts_by_author_aggregated.first(2) }
+        let(:expected_posts_desc) { posts_by_author_aggregated[1..].reverse }
+        let(:expected_has_next_page) { true }
       end
 
       context 'when there are less records than requested' do
@@ -518,8 +710,17 @@ RSpec.describe RailsCursorPagination::Paginator do
           let(:expected_posts_by_author) { posts_by_author }
           let(:expected_posts_by_author_desc) { posts_by_author.reverse }
 
+          let(:expected_posts_by_content) { posts_by_content }
+          let(:expected_posts_by_content_desc) { posts_by_content.reverse }
+
           let(:expected_has_next_page) { false }
           let(:expected_has_previous_page) { false }
+        end
+
+        it_behaves_like 'a query with an aggregation' do
+          let(:expected_posts) { posts_by_author_aggregated }
+          let(:expected_posts_desc) { posts_by_author_aggregated.reverse }
+          let(:expected_has_next_page) { false }
         end
       end
     end
@@ -534,8 +735,19 @@ RSpec.describe RailsCursorPagination::Paginator do
         let(:expected_posts_by_author) { posts_by_author.first(2) }
         let(:expected_posts_by_author_desc) { posts_by_author.reverse.first(2) }
 
+        let(:expected_posts_by_content) { posts_by_content.first(2) }
+        let(:expected_posts_by_content_desc) do
+          posts_by_content.reverse.first(2)
+        end
+
         let(:expected_has_next_page) { true }
         let(:expected_has_previous_page) { false }
+      end
+
+      it_behaves_like 'a query with an aggregation' do
+        let(:expected_posts) { posts_by_author_aggregated.first(2) }
+        let(:expected_posts_desc) { posts_by_author_aggregated[1..].reverse }
+        let(:expected_has_next_page) { true }
       end
 
       context 'when there are less records than requested' do
@@ -548,8 +760,17 @@ RSpec.describe RailsCursorPagination::Paginator do
           let(:expected_posts_by_author) { posts_by_author }
           let(:expected_posts_by_author_desc) { posts_by_author.reverse }
 
+          let(:expected_posts_by_content) { posts_by_content }
+          let(:expected_posts_by_content_desc) { posts_by_content.reverse }
+
           let(:expected_has_next_page) { false }
           let(:expected_has_previous_page) { false }
+        end
+
+        it_behaves_like 'a query with an aggregation' do
+          let(:expected_posts) { posts_by_author_aggregated }
+          let(:expected_posts_desc) { posts_by_author_aggregated.reverse }
+          let(:expected_has_next_page) { false }
         end
       end
     end
@@ -570,8 +791,26 @@ RSpec.describe RailsCursorPagination::Paginator do
         let(:cursor_object_by_author_desc) { posts_by_author[-1] }
         let(:expected_posts_by_author_desc) { posts_by_author[-11..-2].reverse }
 
+        let(:cursor_object_by_content) { posts_by_content[0] }
+        let(:expected_posts_by_content) { posts_by_content[1..10] }
+
+        let(:cursor_object_by_content_desc) { posts_by_content[-1] }
+        let(:expected_posts_by_content_desc) do
+          posts_by_content[-11..-2].reverse
+        end
+
         let(:expected_has_next_page) { true }
         let(:expected_has_previous_page) { true }
+      end
+
+      it_behaves_like 'a query with an aggregation' do
+        let(:cursor_object) { posts_by_author_aggregated.first }
+        let(:expected_posts) { posts_by_author_aggregated[1..] }
+
+        let(:cursor_object_desc) { posts_by_author_aggregated.last }
+        let(:expected_posts_desc) { posts_by_author_aggregated[..-2].reverse }
+
+        let(:expected_has_next_page) { false }
       end
 
       context 'and `first`' do
@@ -592,7 +831,26 @@ RSpec.describe RailsCursorPagination::Paginator do
             posts_by_author[-4..-3].reverse
           end
 
+          let(:cursor_object_by_content) { posts_by_content[2] }
+          let(:expected_posts_by_content) { posts_by_content[3..4] }
+
+          let(:cursor_object_by_content_desc) { posts_by_content[-2] }
+          let(:expected_posts_by_content_desc) do
+            posts_by_content[-4..-3].reverse
+          end
+
           let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { true }
+        end
+
+        it_behaves_like 'a query with an aggregation' do
+          let(:cursor_object) { posts_by_author_aggregated.first }
+          let(:expected_posts) { posts_by_author_aggregated[1..2] }
+
+          let(:cursor_object_desc) { posts_by_author_aggregated.last }
+          let(:expected_posts_desc) { posts_by_author_aggregated[0..1].reverse }
+
+          let(:expected_has_next_page) { false }
           let(:expected_has_previous_page) { true }
         end
 
@@ -611,6 +869,25 @@ RSpec.describe RailsCursorPagination::Paginator do
             let(:expected_posts_by_author_desc) do
               posts_by_author[0..0].reverse
             end
+
+            let(:cursor_object_by_content) { posts_by_content[-2] }
+            let(:expected_posts_by_content) { posts_by_content[-1..] }
+
+            let(:cursor_object_by_content_desc) { posts_by_content[1] }
+            let(:expected_posts_by_content_desc) do
+              posts_by_content[0..0].reverse
+            end
+
+            let(:expected_has_next_page) { false }
+            let(:expected_has_previous_page) { true }
+          end
+
+          it_behaves_like 'a query with an aggregation' do
+            let(:cursor_object) { posts_by_author_aggregated[1] }
+            let(:expected_posts) { [posts_by_author_aggregated[2]] }
+
+            let(:cursor_object_desc) { posts_by_author_aggregated[1] }
+            let(:expected_posts_desc) { [posts_by_author_aggregated[0]] }
 
             let(:expected_has_next_page) { false }
             let(:expected_has_previous_page) { true }
@@ -636,7 +913,26 @@ RSpec.describe RailsCursorPagination::Paginator do
             posts_by_author[-4..-3].reverse
           end
 
+          let(:cursor_object_by_content) { posts_by_content[2] }
+          let(:expected_posts_by_content) { posts_by_content[3..4] }
+
+          let(:cursor_object_by_content_desc) { posts_by_content[-2] }
+          let(:expected_posts_by_content_desc) do
+            posts_by_content[-4..-3].reverse
+          end
+
           let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { true }
+        end
+
+        it_behaves_like 'a query with an aggregation' do
+          let(:cursor_object) { posts_by_author_aggregated.first }
+          let(:expected_posts) { posts_by_author_aggregated[1..2] }
+
+          let(:cursor_object_desc) { posts_by_author_aggregated.last }
+          let(:expected_posts_desc) { posts_by_author_aggregated[0..1].reverse }
+
+          let(:expected_has_next_page) { false }
           let(:expected_has_previous_page) { true }
         end
 
@@ -655,6 +951,25 @@ RSpec.describe RailsCursorPagination::Paginator do
             let(:expected_posts_by_author_desc) do
               posts_by_author[0..0].reverse
             end
+
+            let(:cursor_object_by_content) { posts_by_content[-2] }
+            let(:expected_posts_by_content) { posts_by_content[-1..] }
+
+            let(:cursor_object_by_content_desc) { posts_by_content[1] }
+            let(:expected_posts_by_content_desc) do
+              posts_by_content[0..0].reverse
+            end
+
+            let(:expected_has_next_page) { false }
+            let(:expected_has_previous_page) { true }
+          end
+
+          it_behaves_like 'a query with an aggregation' do
+            let(:cursor_object) { posts_by_author_aggregated[1] }
+            let(:expected_posts) { [posts_by_author_aggregated[2]] }
+
+            let(:cursor_object_desc) { posts_by_author_aggregated[1] }
+            let(:expected_posts_desc) { [posts_by_author_aggregated[0]] }
 
             let(:expected_has_next_page) { false }
             let(:expected_has_previous_page) { true }
@@ -679,8 +994,25 @@ RSpec.describe RailsCursorPagination::Paginator do
         let(:cursor_object_by_author_desc) { posts_by_author[0] }
         let(:expected_posts_by_author_desc) { posts_by_author[1..10].reverse }
 
+        let(:cursor_object_by_content) { posts_by_content[-1] }
+        let(:expected_posts_by_content) { posts_by_content[-11..-2] }
+
+        let(:cursor_object_by_content_desc) { posts_by_content[0] }
+        let(:expected_posts_by_content_desc) { posts_by_content[1..10].reverse }
+
         let(:expected_has_next_page) { true }
         let(:expected_has_previous_page) { true }
+      end
+
+      it_behaves_like 'a query with an aggregation' do
+        let(:cursor_object) { posts_by_author_aggregated.last }
+        let(:expected_posts) { posts_by_author_aggregated[0..1] }
+
+        let(:cursor_object_desc) { posts_by_author_aggregated.first }
+        let(:expected_posts_desc) { posts_by_author_aggregated[1..2].reverse }
+
+        let(:expected_has_next_page) { true }
+        let(:expected_has_previous_page) { false }
       end
 
       context 'and `last`' do
@@ -699,8 +1031,27 @@ RSpec.describe RailsCursorPagination::Paginator do
           let(:cursor_object_by_author_desc) { posts_by_author[2] }
           let(:expected_posts_by_author_desc) { posts_by_author[3..4].reverse }
 
+          let(:cursor_object_by_content) { posts_by_content[-1] }
+          let(:expected_posts_by_content) { posts_by_content[-3..-2] }
+
+          let(:cursor_object_by_content_desc) { posts_by_content[2] }
+          let(:expected_posts_by_content_desc) do
+            posts_by_content[3..4].reverse
+          end
+
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { true }
+        end
+
+        it_behaves_like 'a query with an aggregation' do
+          let(:cursor_object) { posts_by_author_aggregated.last }
+          let(:expected_posts) { posts_by_author_aggregated[0..1] }
+
+          let(:cursor_object_desc) { posts_by_author_aggregated.first }
+          let(:expected_posts_desc) { posts_by_author_aggregated[1..2].reverse }
+
+          let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { false }
         end
 
         context 'when not enough records are remaining before cursor' do
@@ -718,6 +1069,25 @@ RSpec.describe RailsCursorPagination::Paginator do
             let(:expected_posts_by_author_desc) do
               posts_by_author[-1..].reverse
             end
+
+            let(:cursor_object_by_content) { posts_by_content[1] }
+            let(:expected_posts_by_content) { posts_by_content[0..0] }
+
+            let(:cursor_object_by_content_desc) { posts_by_content[-2] }
+            let(:expected_posts_by_content_desc) do
+              posts_by_content[-1..].reverse
+            end
+
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { false }
+          end
+
+          it_behaves_like 'a query with an aggregation' do
+            let(:cursor_object) { posts_by_author_aggregated[1] }
+            let(:expected_posts) { [posts_by_author_aggregated[0]] }
+
+            let(:cursor_object_desc) { posts_by_author_aggregated[1] }
+            let(:expected_posts_desc) { [posts_by_author_aggregated[2]] }
 
             let(:expected_has_next_page) { true }
             let(:expected_has_previous_page) { false }
@@ -743,8 +1113,27 @@ RSpec.describe RailsCursorPagination::Paginator do
             posts_by_author[3..4].reverse
           end
 
+          let(:cursor_object_by_content) { posts_by_content[-1] }
+          let(:expected_posts_by_content) { posts_by_content[-3..-2] }
+
+          let(:cursor_object_by_content_desc) { posts_by_content[2] }
+          let(:expected_posts_by_content_desc) do
+            posts_by_content[3..4].reverse
+          end
+
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { true }
+        end
+
+        it_behaves_like 'a query with an aggregation' do
+          let(:cursor_object) { posts_by_author_aggregated.last }
+          let(:expected_posts) { posts_by_author_aggregated[0..1] }
+
+          let(:cursor_object_desc) { posts_by_author_aggregated.first }
+          let(:expected_posts_desc) { posts_by_author_aggregated[1..2].reverse }
+
+          let(:expected_has_next_page) { true }
+          let(:expected_has_previous_page) { false }
         end
 
         context 'when not enough records are remaining before cursor' do
@@ -762,6 +1151,25 @@ RSpec.describe RailsCursorPagination::Paginator do
             let(:expected_posts_by_author_desc) do
               posts_by_author[-1..].reverse
             end
+
+            let(:cursor_object_by_content) { posts_by_content[1] }
+            let(:expected_posts_by_content) { posts_by_content[0..0] }
+
+            let(:cursor_object_by_content_desc) { posts_by_content[-2] }
+            let(:expected_posts_by_content_desc) do
+              posts_by_content[-1..].reverse
+            end
+
+            let(:expected_has_next_page) { true }
+            let(:expected_has_previous_page) { false }
+          end
+
+          it_behaves_like 'a query with an aggregation' do
+            let(:cursor_object) { posts_by_author_aggregated[1] }
+            let(:expected_posts) { [posts_by_author_aggregated[0]] }
+
+            let(:cursor_object_desc) { posts_by_author_aggregated[1] }
+            let(:expected_posts_desc) { [posts_by_author_aggregated[2]] }
 
             let(:expected_has_next_page) { true }
             let(:expected_has_previous_page) { false }

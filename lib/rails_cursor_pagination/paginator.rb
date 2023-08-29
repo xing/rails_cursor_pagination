@@ -37,12 +37,26 @@ module RailsCursorPagination
     #   ```
     # @param order [Symbol, nil]
     #   Ordering to apply, either `:asc` or `:desc`. Defaults to `:asc`.
+    # @param primary_key [Symbol, String]
+    #   Column to use as primary key instead of ID. This column needs to only
+    #   have unique values for the passed relation! If this parameter is not
+    #   provided, it will default to `id`.
+    #   This is intended for cases where your relation does not have an ID
+    #   column (e.g. because you use UUIDs), where you want to order by a more
+    #   complex logic but cannot create a compound index like described in the
+    #   documentation for `order_by` or you need to order by some computed value
+    #   like `MAX(id)`.
+    #   Note that setting this parameter will replace `:id` everywhere when
+    #   fetching the query and that this is being used to compute the cursor.
+    #   Therefore, it needs to be unique, otherwise pagination breaks.
     #
     # @raise [RailsCursorPagination::ParameterError]
     #   If any parameter is not valid
     def initialize(relation, limit: nil, first: nil, after: nil, last: nil,
-                   before: nil, order_by: nil, order: nil)
-      order_by ||= :id
+                   before: nil, order_by: nil, order: nil, primary_key: :id)
+      @primary_key = primary_key
+
+      order_by ||= primary_key
       order ||= :asc
 
       ensure_valid_params_values!(relation, order, limit, first, last)
@@ -208,7 +222,7 @@ module RailsCursorPagination
     #
     # @return [TrueClass, FalseClass]
     def custom_order_field?
-      @order_field.downcase.to_sym != :id
+      @order_field.downcase.to_sym != @primary_key
     end
 
     # Check if there is a page before the current one.
@@ -365,7 +379,11 @@ module RailsCursorPagination
     # @param record [ActiveRecord] Model instance for which we want the cursor
     # @return [String]
     def cursor_for_record(record)
-      Cursor.from_record(record: record, order_field: @order_field).encode
+      Cursor.from_record(
+        record: record,
+        order_field: @order_field,
+        primary_key: @primary_key
+      ).encode
     end
 
     # Decode the provided cursor. Either just returns the cursor's ID or in case
@@ -375,7 +393,11 @@ module RailsCursorPagination
     # @return [Integer, Array]
     def decoded_cursor
       memoize(:decoded_cursor) do
-        Cursor.decode(encoded_string: @cursor, order_field: @order_field)
+        Cursor.decode(
+          encoded_string: @cursor,
+          order_field: @order_field,
+          primary_key: @primary_key
+        )
       end
     end
 
@@ -390,8 +412,8 @@ module RailsCursorPagination
 
       relation = @relation
 
-      unless @relation.select_values.include?(:id)
-        relation = relation.select(:id)
+      unless @relation.select_values.include?(@primary_key)
+        relation = relation.select(@primary_key)
       end
 
       if custom_order_field? && !@relation.select_values.include?(@order_field)
@@ -407,24 +429,54 @@ module RailsCursorPagination
     # @return [ActiveRecord::Relation]
     def sorted_relation
       unless custom_order_field?
-        return relation_with_cursor_fields.reorder id: pagination_sorting.upcase
+        # By default, ActiveRecord automagically prefixes columns with the
+        # respective table name to avoid collisions on joined relations.
+        # However, if a computed primary key like e.g. `MAX(id)` is used, this
+        # should not be prefixed with the table name. Therefore, it has to be
+        # passed as a string instead of a hash to the `#reorder` method to
+        # disable this prefixing behavior.
+        order_statement = if @primary_key.is_a?(String)
+                            "#{@primary_key} #{pagination_sorting.upcase}"
+                          else
+                            { @primary_key => pagination_sorting.upcase }
+                          end
+
+        return relation_with_cursor_fields.reorder(order_statement)
       end
 
-      relation_with_cursor_fields
-        .reorder(@order_field => pagination_sorting.upcase,
-                 id: pagination_sorting.upcase)
+      order_statement =
+        if @primary_key.is_a?(String) || @order_field.is_a?(String)
+          [
+            "#{@order_field} #{pagination_sorting.upcase}",
+            "#{@primary_key} #{pagination_sorting.upcase}"
+          ].join(',')
+        else
+          {
+            @order_field => pagination_sorting.upcase,
+            @primary_key => pagination_sorting.upcase
+          }
+        end
+
+      relation_with_cursor_fields.reorder(order_statement)
     end
 
-    # Return a properly escaped reference to the ID column prefixed with the
-    # table name. This prefixing is important in case of another model having
+    # Return a properly escaped reference to the primary key column.
+    # If the primary key is a symbol, it is quoted and prefixed  with the table
+    # name, matching ActiveRecord's behavior when building `ORDER BY`
+    # statements. This prefixing is important in case of another model having
     # been joined to the passed relation.
+    # However, if the primary key is already a string we assume that the user
+    # knows what they are doing and the table name is not prepended. This again
+    # matches ActiveRecord's behavior.
     #
     # @return [String (frozen)]
-    def id_column
-      escaped_table_name = @relation.quoted_table_name
-      escaped_id_column = @relation.connection.quote_column_name(:id)
+    def primary_key_column
+      return @primary_key.freeze if @primary_key.is_a?(String)
 
-      "#{escaped_table_name}.#{escaped_id_column}".freeze
+      escaped_table_name = @relation.quoted_table_name
+      escaped_pk_column = @relation.connection.quote_column_name(@primary_key)
+
+      "#{escaped_table_name}.#{escaped_pk_column}".freeze
     end
 
     # Applies the filtering based on the provided cursor and order column to the
@@ -443,14 +495,16 @@ module RailsCursorPagination
     # So our SQL WHERE clause needs to be something like:
     #    WHERE author > 'Jane' OR author = 'Jane' AND id > 4
     #
-    # @return [ActiveRecord::Relation]
+    # @return [ActiveRecord::Relation, ActiveRecord::QueryMethods::WhereChain]
     def filtered_and_sorted_relation
       memoize :filtered_and_sorted_relation do
         next sorted_relation if @cursor.blank?
 
         unless custom_order_field?
-          next sorted_relation.where "#{id_column} #{filter_operator} ?",
-                                     decoded_cursor.id
+          next sorted_relation.where(
+            "#{primary_key_column} #{filter_operator} ?",
+            decoded_cursor.primary_key_value
+          )
         end
 
         sorted_relation
@@ -459,7 +513,10 @@ module RailsCursorPagination
           .or(
             sorted_relation
               .where("#{@order_field} = ?", decoded_cursor.order_field_value)
-              .where("#{id_column} #{filter_operator} ?", decoded_cursor.id)
+              .where(
+                "#{primary_key_column} #{filter_operator} ?",
+                decoded_cursor.primary_key_value
+              )
           )
       end
     end
