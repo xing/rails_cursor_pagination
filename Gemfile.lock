@@ -7,17 +7,16 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (6.1.7.6)
-      activesupport (= 6.1.7.6)
-    activerecord (6.1.7.6)
-      activemodel (= 6.1.7.6)
-      activesupport (= 6.1.7.6)
-    activesupport (6.1.7.6)
+    activemodel (7.0.8)
+      activesupport (= 7.0.8)
+    activerecord (7.0.8)
+      activemodel (= 7.0.8)
+      activesupport (= 7.0.8)
+    activesupport (7.0.8)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
-      zeitwerk (~> 2.3)
     ast (2.4.2)
     base64 (0.1.1)
     concurrent-ruby (1.2.2)
@@ -26,7 +25,7 @@ GEM
       concurrent-ruby (~> 1.0)
     json (2.6.3)
     language_server-protocol (3.17.0.3)
-    minitest (5.19.0)
+    minitest (5.20.0)
     mysql2 (0.5.5)
     parallel (1.23.0)
     parser (3.2.2.3)
@@ -68,7 +67,6 @@ GEM
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (2.4.2)
-    zeitwerk (2.6.11)
 
 PLATFORMS
   ruby
