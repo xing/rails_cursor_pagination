@@ -8,7 +8,7 @@ module RailsCursorPagination
   class TimestampCursor < Cursor
     class << self
       # Decode the provided encoded cursor. Returns an instance of this
-      # +RailsCursorPagination::Cursor+ class containing both the ID and the
+      # `RailsCursorPagination::Cursor` class containing both the ID and the
       # ordering field value. The ordering field is expected to be a timestamp
       # and is always decoded in the UTC timezone.
       #
@@ -17,6 +17,10 @@ module RailsCursorPagination
       # @param order_field [Symbol]
       #   The column that is being ordered on. It needs to be a timestamp of a
       #   class that responds to `#strftime`.
+      # @raise [RailsCursorPagination::InvalidCursorError]
+      #   In case the given `encoded_string` cannot be decoded properly
+      # @return [RailsCursorPagination::TimestampCursor]
+      #   Instance of this class with a properly decoded timestamp cursor
       def decode(encoded_string:, order_field:)
         decoded = JSON.parse(Base64.strict_decode64(encoded_string))
 
@@ -57,6 +61,9 @@ module RailsCursorPagination
     # Encodes the cursor as an array containing the timestamp as microseconds
     # from UNIX epoch and the id of the object
     #
+    # @raise [RailsCursorPagination::ParameterError]
+    #   The order field value needs to respond to `#strftime` to use the
+    #   `TimestampCursor` class. Otherwise, a `ParameterError` is raised.
     # @return [String]
     def encode
       unless @order_field_value.respond_to?(:strftime)
