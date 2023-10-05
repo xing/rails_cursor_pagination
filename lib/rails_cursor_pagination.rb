@@ -160,6 +160,8 @@ module RailsCursorPagination
 
   require_relative 'rails_cursor_pagination/configuration'
 
+  require_relative 'rails_cursor_pagination/page'
+
   require_relative 'rails_cursor_pagination/paginator'
 
   require_relative 'rails_cursor_pagination/cursor'
