@@ -365,7 +365,7 @@ module RailsCursorPagination
     # @param record [ActiveRecord] Model instance for which we want the cursor
     # @return [String]
     def cursor_for_record(record)
-      Cursor.from_record(record: record, order_field: @order_field).encode
+      cursor_class.from_record(record: record, order_field: @order_field).encode
     end
 
     # Decode the provided cursor. Either just returns the cursor's ID or in case
@@ -375,7 +375,25 @@ module RailsCursorPagination
     # @return [Integer, Array]
     def decoded_cursor
       memoize(:decoded_cursor) do
-        Cursor.decode(encoded_string: @cursor, order_field: @order_field)
+        cursor_class.decode(encoded_string: @cursor, order_field: @order_field)
+      end
+    end
+
+    # Returns the appropriate class for the cursor based on the SQL type of the
+    # column used for ordering the relation.
+    #
+    # @return [Class<RailsCursorPagination::Cursor>]
+    def cursor_class
+      order_field_type = @relation
+                         .column_for_attribute(@order_field)
+                         .sql_type_metadata
+                         .type
+
+      case order_field_type
+      when :datetime
+        TimestampCursor
+      else
+        Cursor
       end
     end
 

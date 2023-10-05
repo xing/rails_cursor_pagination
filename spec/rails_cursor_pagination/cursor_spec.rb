@@ -51,23 +51,6 @@ RSpec.describe RailsCursorPagination::Cursor do
         expect(decoded.order_field_value).to eq record.author
       end
     end
-
-    context 'when ordering by created_at' do
-      subject(:encoded) do
-        described_class.from_record(record: record, order_field: :created_at).encode
-      end
-
-      it 'produces a valid string' do
-        expect(encoded).to be_a(String)
-      end
-
-      it 'can be decoded back to the originally encoded value' do
-        decoded = described_class.decode(encoded_string: encoded,
-                                         order_field: :created_at)
-        expect(decoded.id).to eq record.id
-        expect(decoded.order_field_value).to eq record.created_at
-      end
-    end
   end
 
   describe '.from_record' do
@@ -169,40 +152,6 @@ RSpec.describe RailsCursorPagination::Cursor do
         it 'decodes the string succesfully' do
           expect(decoded.id).to eq record.id
           expect(decoded.order_field_value).to eq record.author
-        end
-      end
-    end
-
-    context 'when decoding an encoded message with order_field :created_at' do
-      let(:record) { Post.create! id: 1, author: 'John', content: 'Post 1' }
-      let(:encoded) do
-        described_class.from_record(record: record, order_field: :created_at).encode
-      end
-
-      context 'and the order_field to decode is set to :id' do
-        subject(:decoded) do
-          described_class.decode(encoded_string: encoded)
-        end
-
-        it 'raises an InvalidCursorError' do
-          cursor = [{"seconds"=> record.created_at.to_i, "nanoseconds"=> record.created_at.nsec}, record.id]
-          msg = %Q|The given cursor `#{encoded}` was decoded as `#{cursor}` but could not be parsed|
-          expect { decoded }.to raise_error(
-            ::RailsCursorPagination::InvalidCursorError,
-            msg
-          )
-        end
-      end
-
-      context 'and the order_field to decode is set to :created_at' do
-        subject(:decoded) do
-          described_class.decode(encoded_string: encoded, order_field: :created_at)
-        end
-
-        it 'decodes the string succesfully' do
-          expect(decoded.id).to eq record.id
-          expect(decoded.order_field_value).to eq record.created_at
-          expect(decoded.order_field_value.nsec).to eq record.created_at.nsec
         end
       end
     end

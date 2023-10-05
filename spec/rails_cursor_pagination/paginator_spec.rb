@@ -200,7 +200,7 @@ RSpec.describe RailsCursorPagination::Paginator do
       end
     end
 
-    context 'for basic order_by params' do
+    context 'when order_by is not a timestamp' do
       let(:posts_by_order_by_column) do
         # Posts are first ordered by the author's name and then, in case of two
         # posts having the same author, by ID
@@ -248,7 +248,9 @@ RSpec.describe RailsCursorPagination::Paginator do
             )
           end
         end
-        let(:expected_attributes) { %i[id author content updated_at created_at] }
+        let(:expected_attributes) do
+          %i[id author content updated_at created_at]
+        end
 
         it 'has the correct format' do
           is_expected.to be_a Hash
@@ -268,9 +270,9 @@ RSpec.describe RailsCursorPagination::Paginator do
                                                     :end_cursor
 
             is_expected.to include has_previous_page: expected_has_previous_page,
-                                  has_next_page: expected_has_next_page,
-                                  start_cursor: expected_start_cursor,
-                                  end_cursor: expected_end_cursor
+                                   has_next_page: expected_has_next_page,
+                                   start_cursor: expected_start_cursor,
+                                   end_cursor: expected_end_cursor
           end
         end
 
@@ -386,11 +388,17 @@ RSpec.describe RailsCursorPagination::Paginator do
         it_behaves_like 'a query that works with `order_by` param' do
           let(:cursor_object) { cursor_object_by_order_by_column }
           let(:cursor_object_desc) { cursor_object_by_order_by_column_desc }
-          let(:query_cursor_base) { [cursor_object&.send(order_by_column), cursor_object&.id] }
+          let(:query_cursor_base) do
+            [cursor_object&.send(order_by_column), cursor_object&.id]
+          end
 
           let(:expected_posts) { expected_posts_by_order_by_column }
           let(:expected_posts_desc) { expected_posts_by_order_by_column_desc }
-          let(:expected_cursor) { ->(post) { [post.send(order_by_column), post.id] } }
+          let(:expected_cursor) do
+            lambda { |post|
+              [post.send(order_by_column), post.id]
+            }
+          end
         end
 
         it_behaves_like 'a query that returns no data when relation is empty'
@@ -401,7 +409,9 @@ RSpec.describe RailsCursorPagination::Paginator do
           let(:expected_posts_plain) { posts.first(10) }
           let(:expected_posts_desc) { posts.reverse.first(10) }
 
-          let(:expected_posts_by_order_by_column) { posts_by_order_by_column.first(10) }
+          let(:expected_posts_by_order_by_column) do
+            posts_by_order_by_column.first(10)
+          end
           let(:expected_posts_by_order_by_column_desc) do
             posts_by_order_by_column.reverse.first(10)
           end
@@ -503,8 +513,12 @@ RSpec.describe RailsCursorPagination::Paginator do
           let(:expected_posts_plain) { posts.first(2) }
           let(:expected_posts_desc) { posts.reverse.first(2) }
 
-          let(:expected_posts_by_order_by_column) { posts_by_order_by_column.first(2) }
-          let(:expected_posts_by_order_by_column_desc) { posts_by_order_by_column.reverse.first(2) }
+          let(:expected_posts_by_order_by_column) do
+            posts_by_order_by_column.first(2)
+          end
+          let(:expected_posts_by_order_by_column_desc) do
+            posts_by_order_by_column.reverse.first(2)
+          end
 
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { false }
@@ -518,7 +532,9 @@ RSpec.describe RailsCursorPagination::Paginator do
             let(:expected_posts_desc) { posts.reverse }
 
             let(:expected_posts_by_order_by_column) { posts_by_order_by_column }
-            let(:expected_posts_by_order_by_column_desc) { posts_by_order_by_column.reverse }
+            let(:expected_posts_by_order_by_column_desc) do
+              posts_by_order_by_column.reverse
+            end
 
             let(:expected_has_next_page) { false }
             let(:expected_has_previous_page) { false }
@@ -533,8 +549,12 @@ RSpec.describe RailsCursorPagination::Paginator do
           let(:expected_posts_plain) { posts.first(2) }
           let(:expected_posts_desc) { posts.reverse.first(2) }
 
-          let(:expected_posts_by_order_by_column) { posts_by_order_by_column.first(2) }
-          let(:expected_posts_by_order_by_column_desc) { posts_by_order_by_column.reverse.first(2) }
+          let(:expected_posts_by_order_by_column) do
+            posts_by_order_by_column.first(2)
+          end
+          let(:expected_posts_by_order_by_column_desc) do
+            posts_by_order_by_column.reverse.first(2)
+          end
 
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { false }
@@ -548,7 +568,9 @@ RSpec.describe RailsCursorPagination::Paginator do
             let(:expected_posts_desc) { posts.reverse }
 
             let(:expected_posts_by_order_by_column) { posts_by_order_by_column }
-            let(:expected_posts_by_order_by_column_desc) { posts_by_order_by_column.reverse }
+            let(:expected_posts_by_order_by_column_desc) do
+              posts_by_order_by_column.reverse
+            end
 
             let(:expected_has_next_page) { false }
             let(:expected_has_previous_page) { false }
@@ -567,10 +589,16 @@ RSpec.describe RailsCursorPagination::Paginator do
           let(:expected_posts_desc) { posts[-11..-2].reverse }
 
           let(:cursor_object_by_order_by_column) { posts_by_order_by_column[0] }
-          let(:expected_posts_by_order_by_column) { posts_by_order_by_column[1..10] }
+          let(:expected_posts_by_order_by_column) do
+            posts_by_order_by_column[1..10]
+          end
 
-          let(:cursor_object_by_order_by_column_desc) { posts_by_order_by_column[-1] }
-          let(:expected_posts_by_order_by_column_desc) { posts_by_order_by_column[-11..-2].reverse }
+          let(:cursor_object_by_order_by_column_desc) do
+            posts_by_order_by_column[-1]
+          end
+          let(:expected_posts_by_order_by_column_desc) do
+            posts_by_order_by_column[-11..-2].reverse
+          end
 
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { true }
@@ -586,10 +614,16 @@ RSpec.describe RailsCursorPagination::Paginator do
             let(:cursor_object_desc) { posts[-2] }
             let(:expected_posts_desc) { posts[-4..-3].reverse }
 
-            let(:cursor_object_by_order_by_column) { posts_by_order_by_column[2] }
-            let(:expected_posts_by_order_by_column) { posts_by_order_by_column[3..4] }
+            let(:cursor_object_by_order_by_column) do
+              posts_by_order_by_column[2]
+            end
+            let(:expected_posts_by_order_by_column) do
+              posts_by_order_by_column[3..4]
+            end
 
-            let(:cursor_object_by_order_by_column_desc) { posts_by_order_by_column[-2] }
+            let(:cursor_object_by_order_by_column_desc) do
+              posts_by_order_by_column[-2]
+            end
             let(:expected_posts_by_order_by_column_desc) do
               posts_by_order_by_column[-4..-3].reverse
             end
@@ -606,10 +640,16 @@ RSpec.describe RailsCursorPagination::Paginator do
               let(:cursor_object_desc) { posts[1] }
               let(:expected_posts_desc) { posts[0..0].reverse }
 
-              let(:cursor_object_by_order_by_column) { posts_by_order_by_column[-2] }
-              let(:expected_posts_by_order_by_column) { posts_by_order_by_column[-1..] }
+              let(:cursor_object_by_order_by_column) do
+                posts_by_order_by_column[-2]
+              end
+              let(:expected_posts_by_order_by_column) do
+                posts_by_order_by_column[-1..]
+              end
 
-              let(:cursor_object_by_order_by_column_desc) { posts_by_order_by_column[1] }
+              let(:cursor_object_by_order_by_column_desc) do
+                posts_by_order_by_column[1]
+              end
               let(:expected_posts_by_order_by_column_desc) do
                 posts_by_order_by_column[0..0].reverse
               end
@@ -630,10 +670,16 @@ RSpec.describe RailsCursorPagination::Paginator do
             let(:cursor_object_desc) { posts[-2] }
             let(:expected_posts_desc) { posts[-4..-3].reverse }
 
-            let(:cursor_object_by_order_by_column) { posts_by_order_by_column[2] }
-            let(:expected_posts_by_order_by_column) { posts_by_order_by_column[3..4] }
+            let(:cursor_object_by_order_by_column) do
+              posts_by_order_by_column[2]
+            end
+            let(:expected_posts_by_order_by_column) do
+              posts_by_order_by_column[3..4]
+            end
 
-            let(:cursor_object_by_order_by_column_desc) { posts_by_order_by_column[-2] }
+            let(:cursor_object_by_order_by_column_desc) do
+              posts_by_order_by_column[-2]
+            end
             let(:expected_posts_by_order_by_column_desc) do
               posts_by_order_by_column[-4..-3].reverse
             end
@@ -650,10 +696,16 @@ RSpec.describe RailsCursorPagination::Paginator do
               let(:cursor_object_desc) { posts[1] }
               let(:expected_posts_desc) { posts[0..0].reverse }
 
-              let(:cursor_object_by_order_by_column) { posts_by_order_by_column[-2] }
-              let(:expected_posts_by_order_by_column) { posts_by_order_by_column[-1..] }
+              let(:cursor_object_by_order_by_column) do
+                posts_by_order_by_column[-2]
+              end
+              let(:expected_posts_by_order_by_column) do
+                posts_by_order_by_column[-1..]
+              end
 
-              let(:cursor_object_by_order_by_column_desc) { posts_by_order_by_column[1] }
+              let(:cursor_object_by_order_by_column_desc) do
+                posts_by_order_by_column[1]
+              end
               let(:expected_posts_by_order_by_column_desc) do
                 posts_by_order_by_column[0..0].reverse
               end
@@ -675,11 +727,19 @@ RSpec.describe RailsCursorPagination::Paginator do
           let(:cursor_object_desc) { posts[0] }
           let(:expected_posts_desc) { posts[1..10].reverse }
 
-          let(:cursor_object_by_order_by_column) { posts_by_order_by_column[-1] }
-          let(:expected_posts_by_order_by_column) { posts_by_order_by_column[-11..-2] }
+          let(:cursor_object_by_order_by_column) do
+            posts_by_order_by_column[-1]
+          end
+          let(:expected_posts_by_order_by_column) do
+            posts_by_order_by_column[-11..-2]
+          end
 
-          let(:cursor_object_by_order_by_column_desc) { posts_by_order_by_column[0] }
-          let(:expected_posts_by_order_by_column_desc) { posts_by_order_by_column[1..10].reverse }
+          let(:cursor_object_by_order_by_column_desc) do
+            posts_by_order_by_column[0]
+          end
+          let(:expected_posts_by_order_by_column_desc) do
+            posts_by_order_by_column[1..10].reverse
+          end
 
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { true }
@@ -695,11 +755,19 @@ RSpec.describe RailsCursorPagination::Paginator do
             let(:cursor_object_desc) { posts[2] }
             let(:expected_posts_desc) { posts[3..4].reverse }
 
-            let(:cursor_object_by_order_by_column) { posts_by_order_by_column[-1] }
-            let(:expected_posts_by_order_by_column) { posts_by_order_by_column[-3..-2] }
+            let(:cursor_object_by_order_by_column) do
+              posts_by_order_by_column[-1]
+            end
+            let(:expected_posts_by_order_by_column) do
+              posts_by_order_by_column[-3..-2]
+            end
 
-            let(:cursor_object_by_order_by_column_desc) { posts_by_order_by_column[2] }
-            let(:expected_posts_by_order_by_column_desc) { posts_by_order_by_column[3..4].reverse }
+            let(:cursor_object_by_order_by_column_desc) do
+              posts_by_order_by_column[2]
+            end
+            let(:expected_posts_by_order_by_column_desc) do
+              posts_by_order_by_column[3..4].reverse
+            end
 
             let(:expected_has_next_page) { true }
             let(:expected_has_previous_page) { true }
@@ -713,10 +781,16 @@ RSpec.describe RailsCursorPagination::Paginator do
               let(:cursor_object_desc) { posts[-2] }
               let(:expected_posts_desc) { posts[-1..].reverse }
 
-              let(:cursor_object_by_order_by_column) { posts_by_order_by_column[1] }
-              let(:expected_posts_by_order_by_column) { posts_by_order_by_column[0..0] }
+              let(:cursor_object_by_order_by_column) do
+                posts_by_order_by_column[1]
+              end
+              let(:expected_posts_by_order_by_column) do
+                posts_by_order_by_column[0..0]
+              end
 
-              let(:cursor_object_by_order_by_column_desc) { posts_by_order_by_column[-2] }
+              let(:cursor_object_by_order_by_column_desc) do
+                posts_by_order_by_column[-2]
+              end
               let(:expected_posts_by_order_by_column_desc) do
                 posts_by_order_by_column[-1..].reverse
               end
@@ -737,10 +811,16 @@ RSpec.describe RailsCursorPagination::Paginator do
             let(:cursor_object_desc) { posts[2] }
             let(:expected_posts_desc) { posts[3..4].reverse }
 
-            let(:cursor_object_by_order_by_column) { posts_by_order_by_column[-1] }
-            let(:expected_posts_by_order_by_column) { posts_by_order_by_column[-3..-2] }
+            let(:cursor_object_by_order_by_column) do
+              posts_by_order_by_column[-1]
+            end
+            let(:expected_posts_by_order_by_column) do
+              posts_by_order_by_column[-3..-2]
+            end
 
-            let(:cursor_object_by_order_by_column_desc) { posts_by_order_by_column[2] }
+            let(:cursor_object_by_order_by_column_desc) do
+              posts_by_order_by_column[2]
+            end
             let(:expected_posts_by_order_by_column_desc) do
               posts_by_order_by_column[3..4].reverse
             end
@@ -757,10 +837,16 @@ RSpec.describe RailsCursorPagination::Paginator do
               let(:cursor_object_desc) { posts[-2] }
               let(:expected_posts_desc) { posts[-1..].reverse }
 
-              let(:cursor_object_by_order_by_column) { posts_by_order_by_column[1] }
-              let(:expected_posts_by_order_by_column) { posts_by_order_by_column[0..0] }
+              let(:cursor_object_by_order_by_column) do
+                posts_by_order_by_column[1]
+              end
+              let(:expected_posts_by_order_by_column) do
+                posts_by_order_by_column[0..0]
+              end
 
-              let(:cursor_object_by_order_by_column_desc) { posts_by_order_by_column[-2] }
+              let(:cursor_object_by_order_by_column_desc) do
+                posts_by_order_by_column[-2]
+              end
               let(:expected_posts_by_order_by_column_desc) do
                 posts_by_order_by_column[-1..].reverse
               end
@@ -773,7 +859,7 @@ RSpec.describe RailsCursorPagination::Paginator do
       end
     end
 
-    context 'for timestamped order_by params, i.e. created_at' do
+    context 'when order_by is a timestamp' do
       let(:posts_by_order_by_column) do
         # Posts are first ordered by the created_at
         [
@@ -801,7 +887,7 @@ RSpec.describe RailsCursorPagination::Paginator do
       let(:query_cursor_base) { cursor_object&.id }
       let(:query_cursor) { Base64.strict_encode64(query_cursor_base.to_json) }
       let(:order_by_column) { nil }
-      
+
       shared_examples_for 'a properly returned response' do
         let(:expected_start_cursor) do
           if expected_posts.any?
@@ -817,7 +903,9 @@ RSpec.describe RailsCursorPagination::Paginator do
             )
           end
         end
-        let(:expected_attributes) { %i[id author content updated_at created_at] }
+        let(:expected_attributes) do
+          %i[id author content updated_at created_at]
+        end
 
         it 'has the correct format' do
           is_expected.to be_a Hash
@@ -837,9 +925,9 @@ RSpec.describe RailsCursorPagination::Paginator do
                                                     :end_cursor
 
             is_expected.to include has_previous_page: expected_has_previous_page,
-                                  has_next_page: expected_has_next_page,
-                                  start_cursor: expected_start_cursor,
-                                  end_cursor: expected_end_cursor
+                                   has_next_page: expected_has_next_page,
+                                   start_cursor: expected_start_cursor,
+                                   end_cursor: expected_end_cursor
           end
         end
 
@@ -863,22 +951,22 @@ RSpec.describe RailsCursorPagination::Paginator do
 
             expect(subject.pluck(:data).map(&:attributes).map(&:keys))
               .to all match_array expected_attributes.map(&:to_s)
-  
+
             expect(subject.pluck(:cursor)).to all be_a String
             expect(subject.pluck(:cursor)).to all be_present
             expect(returned_parsed_cursors)
               .to eq(expected_posts.map { |post| expected_cursor.call(post) })
           end
         end
-  
+
         it 'does not return the total by default' do
           is_expected.to be_a Hash
           is_expected.to_not have_key :total
         end
-  
+
         context 'when passing `with_total: true`' do
           subject(:result) { instance.fetch(with_total: true) }
-  
+
           it 'also includes the `total` of records' do
             is_expected.to have_key :total
             expect(subject[:total]).to eq expected_total
@@ -902,14 +990,14 @@ RSpec.describe RailsCursorPagination::Paginator do
         context 'when SELECTing only some columns' do
           let(:selected_attributes) { %i[id created_at] }
           let(:relation) { super().select(*selected_attributes) }
-  
+
           it_behaves_like 'a properly returned response' do
             let(:expected_attributes) { %i[id created_at] }
           end
-  
+
           context 'and not including any cursor-relevant column' do
             let(:selected_attributes) { %i[content author] }
-  
+
             it_behaves_like 'a properly returned response' do
               let(:expected_attributes) do
                 %i[id content author].tap do |attributes|
@@ -921,7 +1009,7 @@ RSpec.describe RailsCursorPagination::Paginator do
         end
       end
 
-      shared_examples_for 'a query that works with timestamped `order_by` param' do
+      shared_examples_for 'a query ordered by a timestamp column' do
         let(:params) { super().merge(order_by: :created_at) }
         let(:order_by_column) { :created_at }
 
@@ -934,7 +1022,7 @@ RSpec.describe RailsCursorPagination::Paginator do
         end
       end
 
-      shared_examples 'for a working query with timestamped `order_by`' do
+      shared_examples 'a working query ordered by a timestamp column' do
         let(:expected_total) { relation.size }
 
         it_behaves_like 'a well working query that also supports SELECT' do
@@ -948,42 +1036,43 @@ RSpec.describe RailsCursorPagination::Paginator do
         it_behaves_like 'a query that works with a descending `order`' do
           let(:cursor_object) { cursor_object_desc }
           let(:query_cursor_base) { cursor_object&.id }
-    
+
           let(:expected_posts) { expected_posts_desc }
           let(:expected_cursor) { ->(post) { post.id } }
         end
 
-        it_behaves_like 'a query that works with timestamped `order_by` param' do
+        it_behaves_like 'a query ordered by a timestamp column' do
           let(:cursor_object) { cursor_object_by_order_by_column }
           let(:cursor_object_desc) { cursor_object_by_order_by_column_desc }
-          let(:query_cursor_base) { [
-            {
-              "seconds"=> cursor_object&.created_at&.to_i,
-              "nanoseconds"=> cursor_object&.created_at&.nsec
-            },
-            cursor_object&.id
-          ] }
+          let(:query_cursor_base) do
+            [
+              cursor_object&.created_at&.strftime('%s%6N')&.to_i,
+              cursor_object&.id
+            ]
+          end
           let(:expected_posts) { expected_posts_by_order_by_column }
           let(:expected_posts_desc) { expected_posts_by_order_by_column_desc }
-          let(:expected_cursor) { ->(post) {[
-            {
-              "seconds"=> post.created_at.to_i,
-              "nanoseconds"=> post.created_at.nsec
-            },
-            post.id
-          ]}}
+          let(:expected_cursor) do
+            lambda { |post|
+              [
+                post.created_at.strftime('%s%6N').to_i,
+                post.id
+              ]
+            }
+          end
         end
 
         it_behaves_like 'a query that returns no data when relation is empty'
       end
 
       context 'when neither first/last/limit nor before/after are passed' do
-
-        include_examples 'for a working query with timestamped `order_by`' do
+        include_examples 'a working query ordered by a timestamp column' do
           let(:expected_posts_plain) { posts.first(10) }
           let(:expected_posts_desc) { posts.reverse.first(10) }
 
-          let(:expected_posts_by_order_by_column) { posts_by_order_by_column.first(10) }
+          let(:expected_posts_by_order_by_column) do
+            posts_by_order_by_column.first(10)
+          end
           let(:expected_posts_by_order_by_column_desc) do
             posts_by_order_by_column.reverse.first(10)
           end
@@ -1003,7 +1092,7 @@ RSpec.describe RailsCursorPagination::Paginator do
 
           after { RailsCursorPagination.configure(&:reset!) }
 
-          include_examples 'for a working query with timestamped `order_by`' do
+          include_examples 'a working query ordered by a timestamp column' do
             let(:expected_posts_plain) { posts.first(custom_page_size) }
             let(:expected_posts_desc) { posts.reverse.first(custom_page_size) }
 
@@ -1030,7 +1119,7 @@ RSpec.describe RailsCursorPagination::Paginator do
 
           after { RailsCursorPagination.configure(&:reset!) }
 
-          include_examples 'for a working query with timestamped `order_by`' do
+          include_examples 'a working query ordered by a timestamp column' do
             let(:expected_posts_plain) { posts.first(max_page_size) }
             let(:expected_posts_desc) { posts.reverse.first(max_page_size) }
 
@@ -1048,7 +1137,7 @@ RSpec.describe RailsCursorPagination::Paginator do
           context 'when attempting to go over the limit' do
             let(:params) { { first: 5 } }
 
-            include_examples 'for a working query with timestamped `order_by`' do
+            include_examples 'a working query ordered by a timestamp column' do
               let(:expected_posts_plain) { posts.first(max_page_size) }
               let(:expected_posts_desc) { posts.reverse.first(max_page_size) }
 
@@ -1081,16 +1170,16 @@ RSpec.describe RailsCursorPagination::Paginator do
       context 'when only passing first' do
         let(:params) { { first: 2 } }
 
-        include_examples 'for a working query with timestamped `order_by`' do
+        include_examples 'a working query ordered by a timestamp column' do
           let(:expected_posts_plain) { posts.first(2) }
           let(:expected_posts_desc) { posts.reverse.first(2) }
 
-          let(:expected_posts_by_order_by_column) {
+          let(:expected_posts_by_order_by_column) do
             posts_by_order_by_column.first(2)
-          }
-          let(:expected_posts_by_order_by_column_desc) {
+          end
+          let(:expected_posts_by_order_by_column_desc) do
             posts_by_order_by_column.reverse.first(2)
-          }
+          end
 
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { false }
@@ -1099,16 +1188,16 @@ RSpec.describe RailsCursorPagination::Paginator do
         context 'when there are less records than requested' do
           let(:params) { { first: posts.size + 1 } }
 
-          include_examples 'for a working query with timestamped `order_by`' do
+          include_examples 'a working query ordered by a timestamp column' do
             let(:expected_posts_plain) { posts }
             let(:expected_posts_desc) { posts.reverse }
 
-            let(:expected_posts_by_order_by_column) {
+            let(:expected_posts_by_order_by_column) do
               posts_by_order_by_column
-            }
-            let(:expected_posts_by_order_by_column_desc) {
+            end
+            let(:expected_posts_by_order_by_column_desc) do
               posts_by_order_by_column.reverse
-            }
+            end
 
             let(:expected_has_next_page) { false }
             let(:expected_has_previous_page) { false }
@@ -1119,16 +1208,16 @@ RSpec.describe RailsCursorPagination::Paginator do
       context 'when only passing limit' do
         let(:params) { { limit: 2 } }
 
-        include_examples 'for a working query with timestamped `order_by`' do
+        include_examples 'a working query ordered by a timestamp column' do
           let(:expected_posts_plain) { posts.first(2) }
           let(:expected_posts_desc) { posts.reverse.first(2) }
 
-          let(:expected_posts_by_order_by_column) {
+          let(:expected_posts_by_order_by_column) do
             posts_by_order_by_column.first(2)
-          }
-          let(:expected_posts_by_order_by_column_desc) {
+          end
+          let(:expected_posts_by_order_by_column_desc) do
             posts_by_order_by_column.reverse.first(2)
-          }
+          end
 
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { false }
@@ -1137,16 +1226,16 @@ RSpec.describe RailsCursorPagination::Paginator do
         context 'when there are less records than requested' do
           let(:params) { { first: posts.size + 1 } }
 
-          include_examples 'for a working query with timestamped `order_by`' do
+          include_examples 'a working query ordered by a timestamp column' do
             let(:expected_posts_plain) { posts }
             let(:expected_posts_desc) { posts.reverse }
 
-            let(:expected_posts_by_order_by_column) {
+            let(:expected_posts_by_order_by_column) do
               posts_by_order_by_column
-            }
-            let(:expected_posts_by_order_by_column_desc) {
+            end
+            let(:expected_posts_by_order_by_column_desc) do
               posts_by_order_by_column.reverse
-            }
+            end
 
             let(:expected_has_next_page) { false }
             let(:expected_has_previous_page) { false }
@@ -1157,26 +1246,26 @@ RSpec.describe RailsCursorPagination::Paginator do
       context 'when passing `after`' do
         let(:params) { { after: query_cursor } }
 
-        include_examples 'for a working query with timestamped `order_by`' do
+        include_examples 'a working query ordered by a timestamp column' do
           let(:cursor_object_plain) { posts[0] }
           let(:expected_posts_plain) { posts[1..10] }
 
           let(:cursor_object_desc) { posts[-1] }
           let(:expected_posts_desc) { posts[-11..-2].reverse }
 
-          let(:cursor_object_by_order_by_column) {
+          let(:cursor_object_by_order_by_column) do
             posts_by_order_by_column[0]
-          }
-          let(:expected_posts_by_order_by_column) {
+          end
+          let(:expected_posts_by_order_by_column) do
             posts_by_order_by_column[1..10]
-          }
+          end
 
-          let(:cursor_object_by_order_by_column_desc) {
+          let(:cursor_object_by_order_by_column_desc) do
             posts_by_order_by_column[-1]
-          }
-          let(:expected_posts_by_order_by_column_desc) {
+          end
+          let(:expected_posts_by_order_by_column_desc) do
             posts_by_order_by_column[-11..-2].reverse
-          }
+          end
 
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { true }
@@ -1185,23 +1274,23 @@ RSpec.describe RailsCursorPagination::Paginator do
         context 'and `first`' do
           let(:params) { super().merge(first: 2) }
 
-          include_examples 'for a working query with timestamped `order_by`' do
+          include_examples 'a working query ordered by a timestamp column' do
             let(:cursor_object_plain) { posts[2] }
             let(:expected_posts_plain) { posts[3..4] }
 
             let(:cursor_object_desc) { posts[-2] }
             let(:expected_posts_desc) { posts[-4..-3].reverse }
 
-            let(:cursor_object_by_order_by_column) {
+            let(:cursor_object_by_order_by_column) do
               posts_by_order_by_column[2]
-            }
-            let(:expected_posts_by_order_by_column) {
+            end
+            let(:expected_posts_by_order_by_column) do
               posts_by_order_by_column[3..4]
-            }
-    
-            let(:cursor_object_by_order_by_column_desc) {
+            end
+
+            let(:cursor_object_by_order_by_column_desc) do
               posts_by_order_by_column[-2]
-            }
+            end
             let(:expected_posts_by_order_by_column_desc) do
               posts_by_order_by_column[-4..-3].reverse
             end
@@ -1211,23 +1300,23 @@ RSpec.describe RailsCursorPagination::Paginator do
           end
 
           context 'when not enough records are remaining after cursor' do
-            include_examples 'for a working query with timestamped `order_by`' do
+            include_examples 'a working query ordered by a timestamp column' do
               let(:cursor_object_plain) { posts[-2] }
               let(:expected_posts_plain) { posts[-1..] }
 
               let(:cursor_object_desc) { posts[1] }
               let(:expected_posts_desc) { posts[0..0].reverse }
 
-              let(:cursor_object_by_order_by_column) {
+              let(:cursor_object_by_order_by_column) do
                 posts_by_order_by_column[-2]
-              }
-              let(:expected_posts_by_order_by_column) {
+              end
+              let(:expected_posts_by_order_by_column) do
                 posts_by_order_by_column[-1..]
-              }
+              end
 
-              let(:cursor_object_by_order_by_column_desc) {
+              let(:cursor_object_by_order_by_column_desc) do
                 posts_by_order_by_column[1]
-              }
+              end
               let(:expected_posts_by_order_by_column_desc) do
                 posts_by_order_by_column[0..0].reverse
               end
@@ -1241,23 +1330,23 @@ RSpec.describe RailsCursorPagination::Paginator do
         context 'and `limit`' do
           let(:params) { super().merge(limit: 2) }
 
-          include_examples 'for a working query with timestamped `order_by`' do
+          include_examples 'a working query ordered by a timestamp column' do
             let(:cursor_object_plain) { posts[2] }
             let(:expected_posts_plain) { posts[3..4] }
 
             let(:cursor_object_desc) { posts[-2] }
             let(:expected_posts_desc) { posts[-4..-3].reverse }
 
-            let(:cursor_object_by_order_by_column) {
+            let(:cursor_object_by_order_by_column) do
               posts_by_order_by_column[2]
-            }
-            let(:expected_posts_by_order_by_column) {
+            end
+            let(:expected_posts_by_order_by_column) do
               posts_by_order_by_column[3..4]
-            }
+            end
 
-            let(:cursor_object_by_order_by_column_desc) {
+            let(:cursor_object_by_order_by_column_desc) do
               posts_by_order_by_column[-2]
-            }
+            end
             let(:expected_posts_by_order_by_column_desc) do
               posts_by_order_by_column[-4..-3].reverse
             end
@@ -1267,23 +1356,23 @@ RSpec.describe RailsCursorPagination::Paginator do
           end
 
           context 'when not enough records are remaining after cursor' do
-            include_examples 'for a working query with timestamped `order_by`' do
+            include_examples 'a working query ordered by a timestamp column' do
               let(:cursor_object_plain) { posts[-2] }
               let(:expected_posts_plain) { posts[-1..] }
 
               let(:cursor_object_desc) { posts[1] }
               let(:expected_posts_desc) { posts[0..0].reverse }
 
-              let(:cursor_object_by_order_by_column) {
+              let(:cursor_object_by_order_by_column) do
                 posts_by_order_by_column[-2]
-              }
-              let(:expected_posts_by_order_by_column) {
+              end
+              let(:expected_posts_by_order_by_column) do
                 posts_by_order_by_column[-1..]
-              }
+              end
 
-              let(:cursor_object_by_order_by_column_desc) {
+              let(:cursor_object_by_order_by_column_desc) do
                 posts_by_order_by_column[1]
-              }
+              end
               let(:expected_posts_by_order_by_column_desc) do
                 posts_by_order_by_column[0..0].reverse
               end
@@ -1297,29 +1386,29 @@ RSpec.describe RailsCursorPagination::Paginator do
 
       context 'when passing `before`' do
         let(:params) { { before: query_cursor } }
-    
-        include_examples 'for a working query with timestamped `order_by`' do
+
+        include_examples 'a working query ordered by a timestamp column' do
           let(:cursor_object_plain) { posts[-1] }
           let(:expected_posts_plain) { posts[-11..-2] }
 
           let(:cursor_object_desc) { posts[0] }
-          let(:expected_posts_desc) {
+          let(:expected_posts_desc) do
             posts[1..10].reverse
-          }
+          end
 
-          let(:cursor_object_by_order_by_column) {
+          let(:cursor_object_by_order_by_column) do
             posts_by_order_by_column[-1]
-          }
-          let(:expected_posts_by_order_by_column) {
+          end
+          let(:expected_posts_by_order_by_column) do
             posts_by_order_by_column[-11..-2]
-          }
+          end
 
-          let(:cursor_object_by_order_by_column_desc) {
+          let(:cursor_object_by_order_by_column_desc) do
             posts_by_order_by_column[0]
-          }
-          let(:expected_posts_by_order_by_column_desc) {
+          end
+          let(:expected_posts_by_order_by_column_desc) do
             posts_by_order_by_column[1..10].reverse
-          }
+          end
 
           let(:expected_has_next_page) { true }
           let(:expected_has_previous_page) { true }
@@ -1328,49 +1417,49 @@ RSpec.describe RailsCursorPagination::Paginator do
         context 'and `last`' do
           let(:params) { super().merge(last: 2) }
 
-          include_examples 'for a working query with timestamped `order_by`' do
+          include_examples 'a working query ordered by a timestamp column' do
             let(:cursor_object_plain) { posts[-1] }
             let(:expected_posts_plain) { posts[-3..-2] }
 
             let(:cursor_object_desc) { posts[2] }
             let(:expected_posts_desc) { posts[3..4].reverse }
 
-            let(:cursor_object_by_order_by_column) {
+            let(:cursor_object_by_order_by_column) do
               posts_by_order_by_column[-1]
-            }
-            let(:expected_posts_by_order_by_column) {
+            end
+            let(:expected_posts_by_order_by_column) do
               posts_by_order_by_column[-3..-2]
-            }
+            end
 
-            let(:cursor_object_by_order_by_column_desc) {
+            let(:cursor_object_by_order_by_column_desc) do
               posts_by_order_by_column[2]
-            }
-            let(:expected_posts_by_order_by_column_desc) {
+            end
+            let(:expected_posts_by_order_by_column_desc) do
               posts_by_order_by_column[3..4].reverse
-            }
+            end
 
             let(:expected_has_next_page) { true }
             let(:expected_has_previous_page) { true }
           end
 
           context 'when not enough records are remaining before cursor' do
-            include_examples 'for a working query with timestamped `order_by`' do
+            include_examples 'a working query ordered by a timestamp column' do
               let(:cursor_object_plain) { posts[1] }
               let(:expected_posts_plain) { posts[0..0] }
 
               let(:cursor_object_desc) { posts[-2] }
               let(:expected_posts_desc) { posts[-1..].reverse }
 
-              let(:cursor_object_by_order_by_column) {
+              let(:cursor_object_by_order_by_column) do
                 posts_by_order_by_column[1]
-              }
-              let(:expected_posts_by_order_by_column) {
+              end
+              let(:expected_posts_by_order_by_column) do
                 posts_by_order_by_column[0..0]
-              }
+              end
 
-              let(:cursor_object_by_order_by_column_desc) {
+              let(:cursor_object_by_order_by_column_desc) do
                 posts_by_order_by_column[-2]
-              }
+              end
               let(:expected_posts_by_order_by_column_desc) do
                 posts_by_order_by_column[-1..].reverse
               end
@@ -1384,23 +1473,23 @@ RSpec.describe RailsCursorPagination::Paginator do
         context 'and `limit`' do
           let(:params) { super().merge(limit: 2) }
 
-          include_examples 'for a working query with timestamped `order_by`' do
+          include_examples 'a working query ordered by a timestamp column' do
             let(:cursor_object_plain) { posts[-1] }
             let(:expected_posts_plain) { posts[-3..-2] }
 
             let(:cursor_object_desc) { posts[2] }
             let(:expected_posts_desc) { posts[3..4].reverse }
 
-            let(:cursor_object_by_order_by_column) {
+            let(:cursor_object_by_order_by_column) do
               posts_by_order_by_column[-1]
-            }
-            let(:expected_posts_by_order_by_column) {
+            end
+            let(:expected_posts_by_order_by_column) do
               posts_by_order_by_column[-3..-2]
-            }
+            end
 
-            let(:cursor_object_by_order_by_column_desc) {
+            let(:cursor_object_by_order_by_column_desc) do
               posts_by_order_by_column[2]
-            }
+            end
             let(:expected_posts_by_order_by_column_desc) do
               posts_by_order_by_column[3..4].reverse
             end
@@ -1410,20 +1499,20 @@ RSpec.describe RailsCursorPagination::Paginator do
           end
 
           context 'when not enough records are remaining before cursor' do
-            include_examples 'for a working query with timestamped `order_by`' do
+            include_examples 'a working query ordered by a timestamp column' do
               let(:cursor_object_plain) { posts[1] }
               let(:expected_posts_plain) { posts[0..0] }
               let(:cursor_object_desc) { posts[-2] }
               let(:expected_posts_desc) { posts[-1..].reverse }
-              let(:cursor_object_by_order_by_column) {
+              let(:cursor_object_by_order_by_column) do
                 posts_by_order_by_column[1]
-              }
-              let(:expected_posts_by_order_by_column) {
+              end
+              let(:expected_posts_by_order_by_column) do
                 posts_by_order_by_column[0..0]
-              }
-              let(:cursor_object_by_order_by_column_desc) {
+              end
+              let(:cursor_object_by_order_by_column_desc) do
                 posts_by_order_by_column[-2]
-              }
+              end
               let(:expected_posts_by_order_by_column_desc) do
                 posts_by_order_by_column[-1..].reverse
               end
