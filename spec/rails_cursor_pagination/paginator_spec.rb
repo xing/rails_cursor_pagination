@@ -269,10 +269,12 @@ RSpec.describe RailsCursorPagination::Paginator do
                                                     :start_cursor,
                                                     :end_cursor
 
-            is_expected.to include has_previous_page: expected_has_previous_page,
-                                   has_next_page: expected_has_next_page,
-                                   start_cursor: expected_start_cursor,
-                                   end_cursor: expected_end_cursor
+            is_expected.to(
+              include has_previous_page: expected_has_previous_page,
+                      has_next_page: expected_has_next_page,
+                      start_cursor: expected_start_cursor,
+                      end_cursor: expected_end_cursor
+            )
           end
         end
 
@@ -924,10 +926,12 @@ RSpec.describe RailsCursorPagination::Paginator do
                                                     :start_cursor,
                                                     :end_cursor
 
-            is_expected.to include has_previous_page: expected_has_previous_page,
-                                   has_next_page: expected_has_next_page,
-                                   start_cursor: expected_start_cursor,
-                                   end_cursor: expected_end_cursor
+            is_expected.to(
+              include has_previous_page: expected_has_previous_page,
+                      has_next_page: expected_has_next_page,
+                      start_cursor: expected_start_cursor,
+                      end_cursor: expected_end_cursor
+            )
           end
         end
 

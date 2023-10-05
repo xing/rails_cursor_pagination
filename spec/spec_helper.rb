@@ -29,7 +29,7 @@ RSpec.configure do |config|
     host: ENV.fetch('DB_HOST', nil),
     username: ENV.fetch('DB_USER', nil)
   )
-  
+
   # Ensure we have an empty `posts` table with the right format
   ActiveRecord::Migration.drop_table :posts, if_exists: true
 
