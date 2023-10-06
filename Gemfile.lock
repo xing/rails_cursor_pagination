@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rails_cursor_pagination (0.3.0)
+    rails_cursor_pagination (0.4.0)
       activerecord (>= 6.0)
 
 GEM
@@ -35,7 +35,7 @@ GEM
       concurrent-ruby (~> 1.0)
     json (2.6.3)
     language_server-protocol (3.17.0.3)
-    minitest (5.19.0)
+    minitest (5.20.0)
     mutex_m (0.1.2)
     mysql2 (0.5.5)
     parallel (1.23.0)
