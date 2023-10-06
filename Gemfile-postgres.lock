@@ -1,33 +1,44 @@
 PATH
   remote: .
   specs:
-    rails_cursor_pagination (0.3.0)
+    rails_cursor_pagination (0.4.0)
       activerecord (>= 6.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (7.0.7.2)
-      activesupport (= 7.0.7.2)
-    activerecord (7.0.7.2)
-      activemodel (= 7.0.7.2)
-      activesupport (= 7.0.7.2)
-    activesupport (7.0.7.2)
+    activemodel (7.1.0)
+      activesupport (= 7.1.0)
+    activerecord (7.1.0)
+      activemodel (= 7.1.0)
+      activesupport (= 7.1.0)
+      timeout (>= 0.4.0)
+    activesupport (7.1.0)
+      base64
+      bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
+      connection_pool (>= 2.2.5)
+      drb
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
+      mutex_m
       tzinfo (~> 2.0)
     ast (2.4.2)
     base64 (0.1.1)
+    bigdecimal (3.1.4)
     concurrent-ruby (1.2.2)
+    connection_pool (2.4.1)
     diff-lcs (1.5.0)
+    drb (2.1.1)
+      ruby2_keywords
     i18n (1.14.1)
       concurrent-ruby (~> 1.0)
     json (2.6.3)
     language_server-protocol (3.17.0.3)
-    minitest (5.19.0)
+    minitest (5.20.0)
+    mutex_m (0.1.2)
     parallel (1.23.0)
-    parser (3.2.2.3)
+    parser (3.2.2.4)
       ast (~> 2.4.1)
       racc
     pg (1.5.3)
@@ -49,7 +60,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.12.0)
     rspec-support (3.12.1)
-    rubocop (1.56.1)
+    rubocop (1.56.4)
       base64 (~> 0.1.1)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
@@ -64,9 +75,11 @@ GEM
     rubocop-ast (1.29.0)
       parser (>= 3.2.1.0)
     ruby-progressbar (1.13.0)
+    ruby2_keywords (0.0.5)
+    timeout (0.4.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
-    unicode-display_width (2.4.2)
+    unicode-display_width (2.5.0)
 
 PLATFORMS
   ruby
