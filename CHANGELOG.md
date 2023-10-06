@@ -14,15 +14,17 @@ These are the latest changes on the project's `master` branch that have not yet 
   Follow the same format as previous releases by categorizing your feature into "Added", "Changed", "Deprecated", "Removed", "Fixed", or "Security".
 --->
 
+## [0.4.0] - 2023-10-06
+
 ### Changed
-- Raised minimum required Ruby version to 2.7
-- Raised minimum required `activerecord` version to 6.0
+- **Breaking change:** Raised minimum required Ruby version to 2.7
+- **Breaking change:** Raised minimum required `activerecord` version to 6.0
 
 ### Added
 - Test against Ruby version 3.2
 
 ### Fixed
-- Ensure timestamp `order_by` fields will have expected paginated results by honoring of timestamps down to microsecond resolution on comparison.
+- **Breaking change:** Ensure timestamp `order_by` fields (like `created_at`) will paginate results by honoring timestamp order down to microsecond resolution on comparison. This was done by changing the cursor logic for timestamp fields, which means that the cursors strings change from version 0.3.0 to 0.4.0 and old cursors cannot be decoded by the new gem version anymore. 
 
 ## [0.3.0] - 2022-07-08
 
