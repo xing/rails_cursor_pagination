@@ -21,6 +21,9 @@ These are the latest changes on the project's `master` branch that have not yet 
 ### Added
 - Test against Ruby version 3.2
 
+### Fixed
+- Ensure timestamp `order_by` fields will have expected paginated results by honoring of timestamps down to microsecond resolution on comparison.
+
 ## [0.3.0] - 2022-07-08
 
 ### Added
